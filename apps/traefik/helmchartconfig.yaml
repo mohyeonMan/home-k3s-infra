@@ -20,5 +20,12 @@ spec:
           default: true
         exposedPort: 15672
         protocol: TCP
+      argo:
+        port: 8081
+        expose:
+          default: true
+        exposedPort: 8081
+        protocol: TCP
     additionalArguments:
     - "--entrypoints.mq.address=:15672"
+    - "--entrypoints.argo.address=:8081"
