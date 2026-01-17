@@ -1,0 +1,30 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-mq
+  namespace: c2c
+spec:
+  stripPrefix:
+    prefixes:
+    - /mq
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-ingress
+  namespace: c2c
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: c2c-strip-mq@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: jhhomehub.gonetis.com
+    http:
+      paths:
+      - path: /mq
+        pathType: Prefix
+        backend:
+          service:
+            name: rabbitmq
+            port:
+              number: 15672
