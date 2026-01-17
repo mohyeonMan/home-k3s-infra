@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rabbitmq-mgmt
+  namespace: c2c
+spec:
+  entryPoints:
+  - mq
+  routes:
+  - match: Host(`jhhomehub.gonetis.com`)
+    kind: Rule
+    services:
+    - name: rabbitmq
+      port: 15672
