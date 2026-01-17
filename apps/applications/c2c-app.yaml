@@ -9,6 +9,8 @@ spec:
     repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
     targetRevision: HEAD
     path: apps/c2c
+    directory:
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: c2c
