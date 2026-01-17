@@ -28,9 +28,9 @@ spec:
       - name: image.registry
         value: docker.io
       - name: image.repository
-        value: rabbitmq
+        value: bitnamicharts/rabbitmq
       - name: image.tag
-        value: 3.13-management
+        value: 11.16.2
   destination:
     server: https://kubernetes.default.svc
     namespace: c2c
