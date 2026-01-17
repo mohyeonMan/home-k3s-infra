@@ -25,6 +25,12 @@ spec:
         value: 5Gi
       - name: service.type
         value: ClusterIP
+      - name: image.registry
+        value: docker.io
+      - name: image.repository
+        value: rabbitmq
+      - name: image.tag
+        value: 3.13-management
   destination:
     server: https://kubernetes.default.svc
     namespace: c2c
