@@ -4,7 +4,7 @@ metadata:
   name: game
   namespace: web
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: game
@@ -26,7 +26,6 @@ metadata:
   name: game
   namespace: web
 spec:
-  replicas: 2
   selector:
     app: game
   ports:
