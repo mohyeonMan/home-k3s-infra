@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: c2c-base
+  name: c2c-app
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
     targetRevision: HEAD
-    path: apps/c2c/base
+    path: apps/c2c
   destination:
     server: https://kubernetes.default.svc
     namespace: c2c
