@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: c2c-ws
+  namespace: c2c
+spec:
+  serviceName: c2c-ws-headless
+  replicas: 2
+  selector:
+    matchLabels:
+      app: c2c-ws
+  template:
+    metadata:
+      labels:
+        app: c2c-ws
+    spec:
+      containers:
+      - name: c2c-ws
+        image: ghcr.io/mohyeonman/c2c-ws-k3s:sha-65e844e
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
