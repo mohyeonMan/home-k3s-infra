@@ -32,10 +32,7 @@ spec:
               name: rabbitmq-auth
               key: rabbitmq-password
         - name: SPRING_REDIS_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: redis-auth
-              key: redis-username
+          value: default
         - name: SPRING_REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
