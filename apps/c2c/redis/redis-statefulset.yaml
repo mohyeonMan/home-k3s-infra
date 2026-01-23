@@ -25,12 +25,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: redis-auth
-              key: rabbitmq-username
+              key: redis-username
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: redis-auth
-              key: rabbitmq-password
+              key: redis-password
         command: ["sh","-c"]
         args:
         - >
