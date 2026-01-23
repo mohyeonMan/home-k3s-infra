@@ -38,7 +38,7 @@ spec:
             secretKeyRef:
               name: redis-auth
               key: redis-password
-        - name: POD_NAME
+        - name: WS_NODE_ID
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
