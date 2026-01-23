@@ -21,6 +21,16 @@ spec:
         - containerPort: 8080
           name: http
         env:
+        - name: SPRING_RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-username
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-password
         - name: POD_NAME
           valueFrom:
             fieldRef:
