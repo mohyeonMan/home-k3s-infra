@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - statefulset.yaml
+
+images:
+  - name: ghcr.io/mohyeonman/c2c-ws-k3s
+    newTag: sha-631463a
