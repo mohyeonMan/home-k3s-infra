@@ -31,6 +31,11 @@ spec:
             secretKeyRef:
               name: rabbitmq-auth
               key: rabbitmq-password
+        - name: SPRING_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: rabbitmq-password
         - name: POD_NAME
           valueFrom:
             fieldRef:
