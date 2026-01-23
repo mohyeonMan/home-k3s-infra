@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: c2c-ws
-        image: ghcr.io/mohyeonman/c2c-ws-k3s:sha-65e844e
+        image: ghcr.io/mohyeonman/c2c-ws-k3s:sha-355d544
         ports:
         - containerPort: 8080
           name: http
