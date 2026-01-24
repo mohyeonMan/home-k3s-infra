@@ -26,6 +26,13 @@ spec:
           default: true
         exposedPort: 8081
         protocol: TCP
+      grafana:
+        port: 3000
+        expose:
+          default: true
+        exposedPort: 3000
+        protocol: TCP
     additionalArguments:
     - "--entrypoints.mq.address=:15672"
     - "--entrypoints.argo.address=:8081"
+    - "--entrypoints.grafana.address=:3000"
