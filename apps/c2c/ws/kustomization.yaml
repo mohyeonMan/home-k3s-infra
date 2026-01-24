@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ingress.yaml
   - service.yaml
+  - servicemonitor.yaml
   - statefulset.yaml
 images:
   - name: ghcr.io/mohyeonman/c2c-ws-k3s

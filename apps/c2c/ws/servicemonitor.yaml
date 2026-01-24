@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: c2c-ws
+  namespace: c2c
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: c2c-ws
+  namespaceSelector:
+    matchNames:
+      - c2c
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
