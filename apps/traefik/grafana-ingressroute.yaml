@@ -10,5 +10,5 @@ spec:
   - match: Host(`jhhomehub.gonetis.com`)
     kind: Rule
     services:
-    - name: monitoring-kube-prometheus-stack-grafana
+    - name: monitoring-grafana
       port: 80
