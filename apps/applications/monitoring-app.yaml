@@ -13,6 +13,10 @@ spec:
       values: |-
         grafana:
           enabled: true
+          admin:
+            existingSecret: monitoring-grafana
+            userKey: admin-user
+            passwordKey: admin-password
         alertmanager:
           enabled: true
   destination:
