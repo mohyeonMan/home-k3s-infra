@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: c2c-csm
+  namespace: c2c
+  labels:
+    app: c2c-csm
+spec:
+  type: ClusterIP
+  selector:
+    app: c2c-csm
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

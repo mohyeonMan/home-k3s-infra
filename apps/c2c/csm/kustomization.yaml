@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - service.yaml
+  - servicemonitor.yaml
+  - deployment.yaml
+images:
+  - name: ghcr.io/mohyeonman/c2c-csm-k3s
+    newTag: sha-bea0836

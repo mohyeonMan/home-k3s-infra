@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: c2c-csm
+  namespace: c2c
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: c2c-csm
+  template:
+    metadata:
+      labels:
+        app: c2c-csm
+    spec:
+      containers:
+      - name: c2c-csm
+        image: ghcr.io/mohyeonman/c2c-csm-k3s
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env:
+        - name: SPRING_RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-username
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-password
+        - name: SPRING_REDIS_USERNAME
+          value: default
+        - name: SPRING_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-password
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace

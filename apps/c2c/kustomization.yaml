@@ -5,3 +5,4 @@ resources:
   - rabbitmq
   - redis
   - ws
+  - csm
