@@ -4,3 +4,4 @@ resources:
   - redis-sealedsecret.yaml
   - redis-service.yaml
   - redis-statefulset.yaml
+  - redis-insight

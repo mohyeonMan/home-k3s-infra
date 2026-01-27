@@ -32,7 +32,14 @@ spec:
           default: true
         exposedPort: 3000
         protocol: TCP
+      redisinsight:
+        port: 5540
+        expose:
+          default: true
+        exposedPort: 5540
+        protocol: TCP
     additionalArguments:
     - "--entrypoints.mq.address=:15672"
     - "--entrypoints.argo.address=:8081"
     - "--entrypoints.grafana.address=:3000"
+    - "--entrypoints.redisinsight.address=:5540"
