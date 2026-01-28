@@ -6,4 +6,4 @@ resources:
   - deployment.yaml
 images:
   - name: ghcr.io/mohyeonman/c2c-csm-k3s
-    newTag: sha-671654f
+    newTag: sha-9008600
