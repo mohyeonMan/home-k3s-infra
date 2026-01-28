@@ -16,6 +16,23 @@ spec:
       containers:
       - name: redis-insight
         image: redis/redisinsight:latest
+        env:
+        - name: RI_ACCEPT_TERMS_AND_CONDITIONS
+          value: "true"
+        - name: RI_REDIS_HOST
+          value: "redis"
+        - name: RI_REDIS_PORT
+          value: "6379"
+        - name: RI_REDIS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-username
+        - name: RI_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-password
         ports:
         - containerPort: 5540
           name: http
