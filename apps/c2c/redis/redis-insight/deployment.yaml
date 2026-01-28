@@ -24,10 +24,7 @@ spec:
         - name: RI_REDIS_PORT
           value: "6379"
         - name: RI_REDIS_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: redis-auth
-              key: redis-username
+          value: default
         - name: RI_REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
