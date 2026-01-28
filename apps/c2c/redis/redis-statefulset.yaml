@@ -20,6 +20,13 @@ spec:
         ports:
         - containerPort: 6379
           name: redis
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            cpu: "1"
+            memory: 2Gi
         env:
         - name: REDIS_USERNAME
           valueFrom:

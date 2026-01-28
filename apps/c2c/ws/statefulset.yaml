@@ -20,6 +20,13 @@ spec:
         ports:
         - containerPort: 8080
           name: http
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            cpu: "1"
+            memory: 2Gi
         env:
         - name: SPRING_RABBITMQ_USERNAME
           valueFrom:
