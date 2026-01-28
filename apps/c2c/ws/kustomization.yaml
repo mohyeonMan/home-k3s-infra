@@ -7,4 +7,4 @@ resources:
   - statefulset.yaml
 images:
   - name: ghcr.io/mohyeonman/c2c-ws-k3s
-    newTag: sha-caa833a
+    newTag: sha-b2f8fb6
