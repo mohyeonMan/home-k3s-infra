@@ -74,6 +74,8 @@
       body {
         height: var(--app-height, 100svh);
         overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
       }
 
       html {
@@ -1433,6 +1435,8 @@
           let scrollLocked = false;
           let scrollTop = 0;
           let keyboardOpen = false;
+          let scrollEnforceTimer = null;
+          let touchMoveBound = false;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1469,6 +1473,35 @@
             }
           };
 
+          const enforceScrollTop = () => {
+            forceScrollTop();
+            requestAnimationFrame(forceScrollTop);
+            if (scrollEnforceTimer) {
+              clearTimeout(scrollEnforceTimer);
+              scrollEnforceTimer = null;
+            }
+            scrollEnforceTimer = setTimeout(() => {
+              forceScrollTop();
+              scrollEnforceTimer = setTimeout(forceScrollTop, 120);
+            }, 40);
+          };
+
+          const preventTouchMove = (event) => {
+            event.preventDefault();
+          };
+
+          const bindTouchLock = () => {
+            if (touchMoveBound) return;
+            document.addEventListener("touchmove", preventTouchMove, { passive: false });
+            touchMoveBound = true;
+          };
+
+          const unbindTouchLock = () => {
+            if (!touchMoveBound) return;
+            document.removeEventListener("touchmove", preventTouchMove);
+            touchMoveBound = false;
+          };
+
           const setAppHeight = () => {
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
@@ -1478,8 +1511,10 @@
               if (delta > 120) {
                 height = vv.height;
                 keyboardOpen = true;
+                bindTouchLock();
               } else {
                 keyboardOpen = false;
+                unbindTouchLock();
               }
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
@@ -1496,7 +1531,7 @@
               window.visualViewport.addEventListener("resize", setAppHeight);
               window.visualViewport.addEventListener("scroll", () => {
                 if (keyboardOpen) {
-                  forceScrollTop();
+                  enforceScrollTop();
                 }
               });
             }
@@ -1505,7 +1540,7 @@
               if (isEditableTarget(event.target)) {
                 lockScroll();
                 setAppHeight();
-                setTimeout(forceScrollTop, 0);
+                enforceScrollTop();
               }
             });
             document.addEventListener("focusout", () => {
@@ -1513,12 +1548,13 @@
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
                   unlockScroll();
+                  unbindTouchLock();
                 }
               }, 0);
             });
             window.addEventListener("scroll", () => {
               if (keyboardOpen) {
-                forceScrollTop();
+                enforceScrollTop();
               }
             });
           };
