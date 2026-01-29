@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>C2C Client</title>
     <style>
       :root {
@@ -100,7 +100,8 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        padding: 18px 16px 22px;
+        padding: calc(18px + env(safe-area-inset-top, 0px)) 16px
+          calc(22px + env(safe-area-inset-bottom, 0px));
         min-height: var(--app-height, 100dvh);
         height: var(--app-height, 100dvh);
         max-width: 420px;
