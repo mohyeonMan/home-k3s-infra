@@ -1430,6 +1430,45 @@
 
         const Viewport = (() => {
           let lastHeight = 0;
+          let scrollLocked = false;
+          let scrollTop = 0;
+          let keyboardOpen = false;
+
+          const isEditableTarget = (target) => {
+            if (!target) return false;
+            const tag = target.tagName;
+            if (tag === "INPUT" || tag === "TEXTAREA") return true;
+            return Boolean(target.isContentEditable);
+          };
+
+          const lockScroll = () => {
+            if (scrollLocked) return;
+            scrollTop = window.scrollY || 0;
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${scrollTop}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+            scrollLocked = true;
+          };
+
+          const unlockScroll = () => {
+            if (!scrollLocked) return;
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.left = "";
+            document.body.style.right = "";
+            document.body.style.width = "";
+            window.scrollTo(0, scrollTop);
+            scrollLocked = false;
+          };
+
+          const forceScrollTop = () => {
+            if (window.scrollY !== 0) {
+              window.scrollTo(0, 0);
+            }
+          };
+
           const setAppHeight = () => {
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
@@ -1438,6 +1477,9 @@
               const delta = baseHeight - vv.height;
               if (delta > 120) {
                 height = vv.height;
+                keyboardOpen = true;
+              } else {
+                keyboardOpen = false;
               }
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
@@ -1452,8 +1494,33 @@
             setAppHeight();
             if (window.visualViewport) {
               window.visualViewport.addEventListener("resize", setAppHeight);
+              window.visualViewport.addEventListener("scroll", () => {
+                if (keyboardOpen) {
+                  forceScrollTop();
+                }
+              });
             }
             window.addEventListener("resize", setAppHeight);
+            document.addEventListener("focusin", (event) => {
+              if (isEditableTarget(event.target)) {
+                lockScroll();
+                setAppHeight();
+                setTimeout(forceScrollTop, 0);
+              }
+            });
+            document.addEventListener("focusout", () => {
+              setTimeout(() => {
+                const active = document.activeElement;
+                if (!isEditableTarget(active)) {
+                  unlockScroll();
+                }
+              }, 0);
+            });
+            window.addEventListener("scroll", () => {
+              if (keyboardOpen) {
+                forceScrollTop();
+              }
+            });
           };
 
           return { bind };
