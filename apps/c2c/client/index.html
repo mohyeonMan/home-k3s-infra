@@ -1050,12 +1050,41 @@
             }
           };
 
+          const copyToClipboard = async (text) => {
+            if (!text) return false;
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+              return true;
+            }
+            try {
+              const textarea = document.createElement("textarea");
+              textarea.value = text;
+              textarea.setAttribute("readonly", "");
+              textarea.style.position = "fixed";
+              textarea.style.top = "-1000px";
+              textarea.style.opacity = "0";
+              document.body.appendChild(textarea);
+              textarea.focus();
+              textarea.select();
+              textarea.setSelectionRange(0, textarea.value.length);
+              const copied = document.execCommand("copy");
+              document.body.removeChild(textarea);
+              return copied;
+            } catch (e) {
+              return false;
+            }
+          };
+
           const copyRoomId = async () => {
             if (!State.session.roomId || !Dom.copyRoomIdBtn) {
               return;
             }
             try {
-              await navigator.clipboard.writeText(State.session.roomId);
+              const ok = await copyToClipboard(State.session.roomId);
+              if (!ok) {
+                openSystemModal("복사에 실패했습니다.");
+                return;
+              }
               Dom.copyRoomIdBtn.textContent = "Copied";
               setTimeout(() => {
                 Dom.copyRoomIdBtn.textContent = "Copy";
@@ -1149,7 +1178,11 @@
               return;
             }
             try {
-              await navigator.clipboard.writeText(link);
+              const ok = await copyToClipboard(link);
+              if (!ok) {
+                openSystemModal("복사에 실패했습니다.");
+                return;
+              }
               if (Dom.copyRoomLinkBtn) {
                 Dom.copyRoomLinkBtn.textContent = "Copied";
                 Dom.copyRoomLinkBtn.classList.add("is-copied");
