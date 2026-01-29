@@ -70,10 +70,15 @@
         display: none;
       }
 
+      html,
+      body {
+        height: 100%;
+      }
+
       body {
         margin: 0;
-        min-height: 100vh;
-        height: 100dvh;
+        min-height: 100svh;
+        height: 100svh;
         overflow: hidden;
         font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
         color: var(--text);
@@ -102,8 +107,8 @@
         gap: 16px;
         padding: calc(18px + env(safe-area-inset-top, 0px)) 16px
           calc(22px + env(safe-area-inset-bottom, 0px));
-        min-height: var(--app-height, 100dvh);
-        height: var(--app-height, 100dvh);
+        min-height: var(--app-height, 100svh);
+        height: var(--app-height, 100svh);
         max-width: 420px;
         margin: 0 auto;
         background: var(--paper-bg);
