@@ -73,6 +73,7 @@
       body {
         margin: 0;
         min-height: 100vh;
+        height: 100dvh;
         overflow: hidden;
         font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
         color: var(--text);
@@ -1421,8 +1422,12 @@
           let lastHeight = 0;
 
           const setAppHeight = () => {
+            const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
-            const height = vv ? vv.height : window.innerHeight;
+            const height =
+              vv && baseHeight - vv.height > 120
+                ? vv.height
+                : baseHeight;
             if (!height || Math.abs(height - lastHeight) < 1) return;
             lastHeight = height;
             document.documentElement.style.setProperty(
@@ -1431,25 +1436,12 @@
             );
           };
 
-          const scrollOnFocus = () => {
-            if (Dom.chatView.classList.contains("hidden")) return;
-            if (Dom.chatComposer) {
-              Dom.chatComposer.scrollIntoView({ block: "end", behavior: "smooth" });
-            }
-            setTimeout(UI.scrollToBottom, 60);
-          };
-
           const bind = () => {
             setAppHeight();
             if (window.visualViewport) {
               window.visualViewport.addEventListener("resize", setAppHeight);
-              window.visualViewport.addEventListener("scroll", setAppHeight);
             }
             window.addEventListener("resize", setAppHeight);
-            if (Dom.chatInput) {
-              Dom.chatInput.addEventListener("focus", scrollOnFocus);
-              Dom.chatInput.addEventListener("click", scrollOnFocus);
-            }
           };
 
           return { bind };
