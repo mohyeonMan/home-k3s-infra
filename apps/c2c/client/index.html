@@ -421,11 +421,19 @@
         z-index: 2;
       }
 
-      .entries-wrap:hover .entries-panel,
-      .entries-wrap:focus-within .entries-panel {
+      .entries-wrap.is-open .entries-panel {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .entries-wrap:hover .entries-panel,
+        .entries-wrap:focus-within .entries-panel {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
       }
 
       .entries-list {
@@ -2219,6 +2227,16 @@
         const Events = (() => {
           const bind = () => {
             Viewport.bind();
+            const closeEntriesPanel = () => {
+              if (!Dom.entriesWrap || !Dom.entriesBtn) return;
+              Dom.entriesWrap.classList.remove("is-open");
+              Dom.entriesBtn.setAttribute("aria-expanded", "false");
+            };
+            const toggleEntriesPanel = () => {
+              if (!Dom.entriesWrap || !Dom.entriesBtn) return;
+              const isOpen = Dom.entriesWrap.classList.toggle("is-open");
+              Dom.entriesBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            };
             Dom.createRoomBtn.addEventListener("click", UI.openCreateModal);
             Dom.closeModalBtn.addEventListener("click", UI.closeCreateModal);
             Dom.cancelCreateBtn.addEventListener("click", UI.closeCreateModal);
@@ -2276,6 +2294,17 @@
               if (event.key !== "Enter") return;
               event.preventDefault();
               Dom.confirmJoinBtn.click();
+            });
+
+            Dom.entriesBtn.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleEntriesPanel();
+            });
+            document.addEventListener("click", (event) => {
+              if (!Dom.entriesWrap) return;
+              if (Dom.entriesWrap.contains(event.target)) return;
+              closeEntriesPanel();
             });
 
             Dom.backToHomeBtn.addEventListener("click", UI.openLeaveRoomModal);
