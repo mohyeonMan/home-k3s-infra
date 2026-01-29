@@ -208,6 +208,7 @@
         background: var(--input-bg);
         color: var(--text);
         font: inherit;
+        font-size: 16px;
       }
 
       .actions {
@@ -460,7 +461,8 @@
         display: flex;
         flex-direction: column;
         gap: 0;
-        padding: 14px;
+        --chat-padding: 14px;
+        padding: var(--chat-padding);
         border-radius: 16px;
         background: var(--panel);
         border: 1px solid var(--border);
@@ -468,6 +470,7 @@
         min-height: 0;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        width: 100%;
       }
 
       .chat-window::-webkit-scrollbar {
@@ -508,13 +511,13 @@
         align-self: stretch;
         width: 100%;
         max-width: 100%;
-        margin: 4px -14px;
+        margin: 4px calc(-1 * var(--chat-padding));
         padding: 2px 12px;
         font-size: 12px;
         color: var(--muted);
         text-align: center;
         background: rgba(210, 210, 210, 0.55);
-        /* border-radius: 8px; */
+        border-radius: 0;
       }
 
       .meta {
@@ -571,6 +574,33 @@
         padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
         background: var(--paper-bg);
         border-top: 1px solid rgba(120, 95, 80, 0.12);
+        width: 100%;
+      }
+
+      @media (max-width: 520px) {
+        .app {
+          max-width: 100%;
+          padding: 12px 12px 14px;
+        }
+
+        #chatView:not(.hidden) {
+          flex: 1 1 auto;
+          min-height: 0;
+        }
+
+        .chat-stack {
+          flex: 1 1 auto;
+          gap: 6px;
+        }
+
+        .chat-window {
+          --chat-padding: 12px;
+          border-radius: 12px;
+        }
+
+        .composer {
+          padding-top: 6px;
+        }
       }
 
       .chat-shell {
