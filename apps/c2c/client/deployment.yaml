@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: c2c-client
+  namespace: c2c
+  labels:
+    app: c2c-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c2c-client
+  template:
+    metadata:
+      labels:
+        app: c2c-client
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: client-html
+          mountPath: /usr/share/nginx/html/c2c
+      volumes:
+      - name: client-html
+        configMap:
+          name: c2c-client-html

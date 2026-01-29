@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: c2c-client-ingress
+  namespace: c2c
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: jhhomehub.gonetis.com
+    http:
+      paths:
+      - path: /c2c
+        pathType: Prefix
+        backend:
+          service:
+            name: c2c-client
+            port:
+              number: 80

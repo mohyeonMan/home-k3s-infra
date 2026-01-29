@@ -1,0 +1,2223 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C2C Client</title>
+    <style>
+      :root {
+        --bg: #f5efe6;
+        --bg-2: #efe6d7;
+        --card: #f7f1e8;
+        --card-2: #efe3d2;
+        --text: #2a1f1a;
+        --muted: #6b5f57;
+        --accent: #8c2f3a;
+        --accent-2: #b23b45;
+        --border: #d8c9b8;
+        --bubble-in: #d6c1aa;
+        --bubble-in-border: rgba(140, 47, 58, 0.18);
+        --bubble-out: #8c2f3a;
+        --surface: #f7f1e8;
+        --surface-2: #efe3d2;
+        --panel: rgba(239, 227, 210, 0.85);
+        --panel-2: rgba(239, 227, 210, 0.65);
+        --input-bg: #efe6d7;
+        --input-border: #d8c9b8;
+        --pill-bg: rgba(178, 59, 69, 0.12);
+        --pill-border: rgba(178, 59, 69, 0.28);
+        --pill-text: #8c2f3a;
+        --pill-soft-bg: rgba(140, 47, 58, 0.12);
+        --pill-soft-border: rgba(140, 47, 58, 0.35);
+        --pill-soft-text: #7a2a35;
+        --entry-bg: rgba(239, 227, 210, 0.6);
+        --system-bg: rgba(239, 227, 210, 0.45);
+        --shadow-card: 0 10px 30px rgba(80, 60, 40, 0.18);
+        --shadow-float: 0 12px 30px rgba(80, 60, 40, 0.22);
+        --paper-bg: rgba(247, 241, 232, 0.9);
+        --paper-border: rgba(212, 196, 179, 0.6);
+        --paper-shadow: 0 16px 40px rgba(80, 60, 40, 0.12);
+        --link: #7a4a43;
+        --primary-text: #2a1f1a;
+        --modal-backdrop: rgba(64, 52, 40, 0.35);
+        --modal-shadow: 0 18px 50px rgba(80, 60, 40, 0.28);
+        --spinner-track: rgba(140, 47, 58, 0.18);
+        --bubble-shadow: 0 6px 16px rgba(80, 60, 40, 0.22);
+        --bubble-out-text: #fff6f4;
+        --meta: #6f5a54;
+        --entries-self: #3b6b7a;
+        --entries-owner-border: rgba(140, 47, 58, 0.4);
+        --owner-badge-bg: rgba(140, 47, 58, 0.16);
+        --owner-badge-text: #7a2a35;
+        --owner-badge-border: rgba(140, 47, 58, 0.4);
+        --copied-bg: rgba(140, 47, 58, 0.22);
+        --copied-border: rgba(140, 47, 58, 0.55);
+        --copied-text: #fff4f2;
+        --bg-grad-1: #e8dcc7;
+        --bg-grad-2: #ead6c1;
+        --bg-grad-3: #f0e5d6;
+        --bg-grad-4: #e8dbc9;
+        --transparent: transparent;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1200px 700px at 10% -10%, var(--bg-grad-1) 0%, var(--transparent) 55%),
+          radial-gradient(900px 600px at 90% 0%, var(--bg-grad-2) 0%, var(--transparent) 50%),
+          linear-gradient(180deg, var(--bg-grad-3) 0%, var(--bg-grad-4) 100%);
+      }
+
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--accent-2);
+        outline-offset: 2px;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 18px 16px 22px;
+        min-height: 100dvh;
+        height: 100dvh;
+        max-width: 420px;
+        margin: 0 auto;
+        background: var(--paper-bg);
+        box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
+      }
+
+      #chatView:not(.hidden) {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        gap: 12px;
+      }
+
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h1 {
+        margin: 0 0 4px 0;
+        font-size: 22px;
+      }
+
+      .room-title {
+        font-size: 18px;
+        margin: 0;
+      }
+
+      .title-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .tiny-btn {
+        padding: 0 4px;
+        font-size: 8px;
+        line-height: 1.2;
+        border-radius: 8px;
+      }
+
+      #copyRoomIdBtn {
+        font-size: 12px;
+        padding: 2px 6px;
+        line-height: 1.2;
+      }
+
+      .room-subline {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .room-id-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      h2 {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+      }
+
+      .muted {
+        color: var(--muted);
+        margin: 0;
+        font-size: 12px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: var(--shadow-card);
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field span {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--input-border);
+        border-radius: 12px;
+        background: var(--input-bg);
+        color: var(--text);
+        font: inherit;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .btn {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface-2);
+        color: var(--text);
+        padding: 10px 14px;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+        color: var(--primary-text);
+        border: none;
+        font-weight: 600;
+      }
+
+      .link {
+        display: inline-flex;
+        margin-top: 12px;
+        color: var(--link);
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: var(--modal-backdrop);
+        z-index: 10;
+        pointer-events: auto;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal {
+        width: 100%;
+        max-width: 360px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: var(--modal-shadow);
+        position: relative;
+        z-index: 1;
+      }
+
+      .modal.toast {
+        max-width: 320px;
+        text-align: center;
+      }
+
+      .modal.progress {
+        text-align: center;
+        pointer-events: auto;
+      }
+
+      .modal.progress h3 {
+        margin: 10px 0 6px;
+        font-size: 16px;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .icon-btn {
+        background: var(--transparent);
+        border: none;
+        color: var(--muted);
+        font-size: 18px;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+
+      .spinner {
+        width: 36px;
+        height: 36px;
+        margin: 6px auto 4px;
+        border-radius: 50%;
+        border: 3px solid var(--spinner-track);
+        border-top-color: var(--accent);
+        animation: spin 0.9s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--pill-bg);
+        color: var(--pill-text);
+        font-size: 12px;
+        border: 1px solid var(--pill-border);
+        text-decoration: none;
+      }
+
+      .pill.secondary {
+        background: var(--pill-soft-bg);
+        border-color: var(--pill-soft-border);
+        color: var(--pill-soft-text);
+      }
+
+      .pill.secondary.link-btn {
+        min-width: 72px;
+        justify-content: center;
+      }
+
+      .pill.secondary.link-btn.is-copied {
+        background: var(--copied-bg);
+        border-color: var(--copied-border);
+        color: var(--copied-text);
+      }
+      .header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .entries-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        margin-top: 6px;
+      }
+
+      .entries-trigger {
+        border: 1px solid var(--pill-soft-border);
+        border-radius: 999px;
+        background: var(--pill-soft-bg);
+        color: var(--pill-soft-text);
+        font-size: 12px;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .entries-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 200px;
+        max-width: 260px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px;
+        box-shadow: var(--shadow-float);
+        color: var(--text);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 2;
+      }
+
+      .entries-wrap:hover .entries-panel,
+      .entries-wrap:focus-within .entries-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .entries-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 6px;
+      }
+
+      .entries-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 10px;
+        background: var(--entry-bg);
+        font-size: 12px;
+        color: var(--text);
+      }
+
+      .entries-item.is-self {
+        color: var(--entries-self);
+      }
+
+      .entries-item.is-owner {
+        border: 1px solid var(--entries-owner-border);
+      }
+
+      .owner-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: var(--owner-badge-bg);
+        color: var(--owner-badge-text);
+        border: 1px solid var(--owner-badge-border);
+      }
+
+      .chat-body {
+        background: var(--bg);
+      }
+
+      .chat {
+        gap: 12px;
+      }
+
+      .chat-window {
+        position: relative;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 14px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        overflow-y: auto;
+        min-height: 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .chat-window::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+
+      .bubble {
+        max-width: 85%;
+        padding: 4px 9px;
+        border-radius: 14px 14px 14px 4px;
+        background: var(--bubble-in);
+        border: 1px solid var(--bubble-in-border);
+        box-shadow: var(--bubble-shadow);
+        font-size: 13px;
+        margin-top: 1px;
+        margin-bottom: 0;
+        display: inline-flex;
+        flex-direction: column;
+        width: fit-content;
+      }
+
+      .bubble.in {
+        background: var(--bubble-in);
+        border-radius: 14px 14px 14px 4px;
+      }
+
+      .bubble.out {
+        align-self: flex-end;
+        background: var(--bubble-out);
+        color: var(--bubble-out-text);
+        border-radius: 14px 14px 4px 14px;
+        margin-top: 3px;
+        border-color: transparent;
+      }
+
+      .system-message {
+        align-self: center;
+        max-width: 90%;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        padding: 2px 10px;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+        background: var(--system-bg);
+        /* border: 1px solid var(--border); */
+        border-radius: 999px;
+      }
+
+      .meta {
+        font-size: 11px;
+        color: var(--meta);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .bubble p {
+        margin: 0;
+      }
+
+      .bubble-time {
+        margin-top: 2px;
+        margin-bottom: 8px;
+        font-size: 10px;
+        color: var(--muted);
+        padding: 0;
+        align-self: flex-start;
+      }
+
+      .bubble-time.out {
+        align-self: flex-end;
+      }
+
+      .bubble-sender {
+        margin-top: 1px;
+        margin-bottom: 0;
+        font-size: 10px;
+        color: var(--muted);
+        padding: 0;
+        align-self: flex-start;
+      }
+
+      .chat-stack {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0;
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        margin-top: 0;
+        flex: 0 0 auto;
+      }
+
+      .chat-shell {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .scroll-bottom-btn {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        border: 1px solid var(--pill-soft-border);
+        border-radius: 999px;
+        background: var(--pill-soft-bg);
+        color: var(--pill-soft-text);
+        padding: 6px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- Home view: room creation/join entry point -->
+      <div id="homeView">
+        <header class="app-header">
+          <div>
+            <h1>C2C Client</h1>
+            <p class="muted">Create or join a room to start chatting.</p>
+          </div>
+        </header>
+
+        <section class="card">
+          <h2>Room Actions</h2>
+          <div class="actions">
+            <button class="btn primary" id="createRoomBtn">Create Room</button>
+            <button class="btn" id="joinRoomBtn">Join Room</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Quick Tips</h2>
+          <ul class="list">
+            <li>Use a unique nickname for each device.</li>
+            <li>Share the Room ID to invite others.</li>
+            <li>Chat view is optimized for phones.</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Chat view: room header + message list + composer -->
+      <div id="chatView" class="hidden">
+        <header class="app-header">
+          <div>
+            <div class="title-row">
+              <h1 class="room-title" id="roomTitle">Room</h1>
+            </div>
+            <div class="room-subline">
+              <p class="muted" id="roomMeta">Connected</p>
+              <div class="room-id-row">
+                <p class="muted" id="roomIdText"></p>
+                <button class="btn tiny-btn" id="copyRoomIdBtn" type="button">Copy</button>
+              </div>
+            </div>
+            <div class="entries-wrap" id="entriesWrap">
+              <button class="entries-trigger" id="entriesBtn" type="button">Entries</button>
+              <div class="entries-panel" id="entriesPanel">
+                <ul class="entries-list" id="entriesList"></ul>
+              </div>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="pill secondary link-btn" id="copyRoomLinkBtn" type="button">
+              Link
+            </button>
+            <button class="pill" id="backToHomeBtn" type="button">Back</button>
+          </div>
+        </header>
+
+        <div class="chat-stack">
+          <!-- Message stream -->
+          <div class="chat-shell">
+          <section class="chat-window" id="chatWindow" aria-live="polite"></section>
+          <button class="scroll-bottom-btn hidden" id="scrollToBottomBtn" type="button">
+            ▼
+          </button>
+          </div>
+
+          <!-- Message composer -->
+          <form class="composer" id="chatComposer" action="#" method="post">
+            <input type="text" id="chatInput" placeholder="Type a message..." />
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create room modal -->
+    <div class="modal-backdrop" id="createRoomModal" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Create Room</h3>
+          <button class="icon-btn" id="closeModalBtn" aria-label="Close">✕</button>
+        </div>
+        <p class="muted">Enter a nickname to create a room.</p>
+        <label class="field">
+          <span>Nickname</span>
+          <input type="text" id="nicknameInput" placeholder="nick" />
+        </label>
+        <div class="actions">
+          <button class="btn primary" id="confirmCreateBtn">Create</button>
+          <button class="btn" id="cancelCreateBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join room modal -->
+    <div class="modal-backdrop" id="joinRoomModal" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Join Room</h3>
+          <button class="icon-btn" id="closeJoinModalBtn" aria-label="Close">✕</button>
+        </div>
+        <p class="muted">Enter a nickname and room ID to join.</p>
+        <label class="field">
+          <span>Nickname</span>
+          <input type="text" id="joinNicknameInput" placeholder="nick" />
+        </label>
+        <label class="field">
+          <span>Room ID</span>
+          <input type="text" id="joinRoomIdInput" placeholder="room-123" />
+        </label>
+        <div class="actions">
+          <button class="btn primary" id="confirmJoinBtn">Join</button>
+          <button class="btn" id="cancelJoinBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join flow progress modal -->
+    <div class="modal-backdrop" id="joinProgressModal" aria-hidden="true">
+      <div class="modal progress">
+        <div class="modal-header">
+          <h3>Joining...</h3>
+          <button class="icon-btn" id="closeJoinProgressBtn" type="button" aria-label="Close">✕</button>
+        </div>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted" id="joinProgressText">요청을 보내는 중...</p>
+        <p class="muted" id="joinProgressTime">--:--</p>
+      </div>
+    </div>
+
+    <!-- Reconnect progress modal -->
+    <div class="modal-backdrop" id="reconnectModal" aria-hidden="true">
+      <div class="modal progress">
+        <div class="modal-header">
+          <h3>Reconnecting...</h3>
+          <button class="icon-btn" id="closeReconnectBtn" type="button" aria-label="Close">✕</button>
+        </div>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted" id="reconnectText">연결을 다시 시도 중...</p>
+        <p class="muted" id="reconnectTime">--:--</p>
+      </div>
+    </div>
+
+    <!-- Owner approval modal for join requests -->
+    <div class="modal-backdrop" id="joinApproveModal" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Join Request</h3>
+          <button class="icon-btn" id="closeJoinApproveBtn" aria-label="Close">✕</button>
+        </div>
+        <p class="muted" id="joinApproveText">새로운 참여 요청이 있습니다.</p>
+        <div class="actions">
+          <button class="btn primary" id="approveJoinBtn">Approve</button>
+          <button class="btn" id="denyJoinBtn">Deny</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generic system notice modal -->
+    <div class="modal-backdrop" id="systemModal" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Notice</h3>
+          <button class="icon-btn" id="closeSystemModalBtn" aria-label="Close">✕</button>
+        </div>
+        <p class="muted" id="systemModalText">알림</p>
+        <div class="actions">
+          <button class="btn primary" id="confirmSystemModalBtn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave room confirm modal -->
+    <div class="modal-backdrop" id="leaveRoomModal" aria-hidden="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Leave Room</h3>
+          <button class="icon-btn" id="closeLeaveModalBtn" aria-label="Close">✕</button>
+        </div>
+        <p class="muted" id="leaveRoomText">
+          채팅방을 나가시겠습니까?
+        </p>
+        <p class="muted">
+          경고) 마지막 참여자인 경우 채팅방이 비활성화됩니다.
+        </p>
+        <div class="actions">
+          <button class="btn primary" id="confirmLeaveBtn">나가기</button>
+          <button class="btn" id="cancelLeaveBtn">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast notice modal -->
+    <div class="modal-backdrop" id="toastModal" aria-hidden="true">
+      <div class="modal toast">
+        <p class="muted" id="toastModalText">알림</p>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const Config = {
+          wsBaseUrl: "ws://jhhomehub.gonetis.com/ws",
+          heartbeatIntervalMs: 10000,
+          heartbeatAckTimeoutMs: 5000,
+          reconnectDelayMs: 1000,
+        };
+
+        const Dom = (() => {
+          const byId = (id) => document.getElementById(id);
+          return {
+            createRoomBtn: byId("createRoomBtn"),
+            homeView: byId("homeView"),
+            chatView: byId("chatView"),
+            roomTitle: byId("roomTitle"),
+            roomMeta: byId("roomMeta"),
+            roomIdText: byId("roomIdText"),
+            backToHomeBtn: byId("backToHomeBtn"),
+            chatWindow: byId("chatWindow"),
+            scrollToBottomBtn: byId("scrollToBottomBtn"),
+            chatComposer: byId("chatComposer"),
+            chatInput: byId("chatInput"),
+            entriesWrap: byId("entriesWrap"),
+            entriesBtn: byId("entriesBtn"),
+            entriesList: byId("entriesList"),
+            copyRoomLinkBtn: byId("copyRoomLinkBtn"),
+            copyRoomIdBtn: byId("copyRoomIdBtn"),
+            createRoomModal: byId("createRoomModal"),
+            closeModalBtn: byId("closeModalBtn"),
+            cancelCreateBtn: byId("cancelCreateBtn"),
+            confirmCreateBtn: byId("confirmCreateBtn"),
+            nicknameInput: byId("nicknameInput"),
+            joinRoomBtn: byId("joinRoomBtn"),
+            joinRoomModal: byId("joinRoomModal"),
+            closeJoinModalBtn: byId("closeJoinModalBtn"),
+            cancelJoinBtn: byId("cancelJoinBtn"),
+            confirmJoinBtn: byId("confirmJoinBtn"),
+            joinNicknameInput: byId("joinNicknameInput"),
+            joinRoomIdInput: byId("joinRoomIdInput"),
+            joinProgressModal: byId("joinProgressModal"),
+            joinProgressText: byId("joinProgressText"),
+            joinProgressTime: byId("joinProgressTime"),
+            closeJoinProgressBtn: byId("closeJoinProgressBtn"),
+            reconnectModal: byId("reconnectModal"),
+            reconnectText: byId("reconnectText"),
+            reconnectTime: byId("reconnectTime"),
+            closeReconnectBtn: byId("closeReconnectBtn"),
+            joinApproveModal: byId("joinApproveModal"),
+            joinApproveText: byId("joinApproveText"),
+            closeJoinApproveBtn: byId("closeJoinApproveBtn"),
+            approveJoinBtn: byId("approveJoinBtn"),
+            denyJoinBtn: byId("denyJoinBtn"),
+            systemModal: byId("systemModal"),
+            systemModalText: byId("systemModalText"),
+            toastModal: byId("toastModal"),
+            toastModalText: byId("toastModalText"),
+            leaveRoomModal: byId("leaveRoomModal"),
+            closeLeaveModalBtn: byId("closeLeaveModalBtn"),
+            confirmLeaveBtn: byId("confirmLeaveBtn"),
+            cancelLeaveBtn: byId("cancelLeaveBtn"),
+            closeSystemModalBtn: byId("closeSystemModalBtn"),
+            confirmSystemModalBtn: byId("confirmSystemModalBtn"),
+          };
+        })();
+
+        const State = {
+          join: {
+            nickname: "",
+            roomId: "",
+            requestId: "",
+            joinRequestId: "",
+            pending: false,
+          },
+          create: {
+            nickname: "",
+            roomId: "",
+            requestId: "",
+          },
+          session: {
+            roomId: "",
+            nickname: "",
+            userId: "",
+            ownerId: "",
+            entries: [],
+          },
+          reconnect: {
+            pending: false,
+            mode: "none",
+            blocked: false,
+          },
+          pendingJoinRequest: null,
+          resetJoin(nickname = "", roomId = "") {
+            this.join = {
+              nickname,
+              roomId,
+              requestId: "",
+              joinRequestId: "",
+              pending: false,
+            };
+          },
+          resetCreate(nickname = "") {
+            this.create = {
+              nickname,
+              roomId: "",
+              requestId: "",
+            };
+          },
+          clearSession(keepUserId = true) {
+            const userId = keepUserId ? this.session.userId : "";
+            this.session = {
+              roomId: "",
+              nickname: "",
+              userId,
+              ownerId: "",
+              entries: [],
+            };
+            this.reconnect.pending = false;
+            this.reconnect.mode = "none";
+            this.pendingJoinRequest = null;
+          },
+        };
+
+        const Utils = {
+          parsePayload(raw) {
+            if (!raw) return null;
+            if (typeof raw === "object") return raw;
+            if (typeof raw !== "string") return null;
+            try {
+              return JSON.parse(raw);
+            } catch (e) {
+              return null;
+            }
+          },
+          formatTime(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            const hh = String(date.getHours()).padStart(2, "0");
+            const mm = String(date.getMinutes()).padStart(2, "0");
+            return `${hh}:${mm}`;
+          },
+          getQueryParam(key) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(key);
+          },
+          getStoredUserId() {
+            try {
+              return sessionStorage.getItem("c2cUserId") || "";
+            } catch (e) {
+              return "";
+            }
+          },
+          setStoredUserId(userId) {
+            if (!userId) return;
+            try {
+              sessionStorage.setItem("c2cUserId", userId);
+            } catch (e) {
+              return;
+            }
+          },
+          buildWsUrl(baseUrl, userId) {
+            if (!userId) return baseUrl;
+            const separator = baseUrl.includes("?") ? "&" : "?";
+            return `${baseUrl}${separator}userId=${encodeURIComponent(userId)}`;
+          },
+        };
+
+        const UI = (() => {
+          const SCROLL_THRESHOLD_PX = 24;
+          const SCROLL_BTN_DELAY_MS = 250;
+          const COPY_RESET_MS = 1000;
+          let copyResetTimer = null;
+          let scrollBtnTimer = null;
+          let scrollBtnVisible = false;
+          let lastTimeLabelSelf = "";
+          let lastTimeElSelf = null;
+          let lastTimeLabelOther = "";
+          let lastTimeElOther = null;
+          let lastSenderId = "";
+          let lastSenderEl = null;
+
+          const setModalOpen = (modal, isOpen) => {
+            modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+            modal.classList.toggle("open", isOpen);
+          };
+
+          const isNearBottom = () => {
+            const el = Dom.chatWindow;
+            if (!el) return true;
+            return el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_THRESHOLD_PX;
+          };
+
+          const updateScrollToBottomButton = () => {
+            if (!Dom.scrollToBottomBtn || Dom.chatView.classList.contains("hidden")) {
+              return;
+            }
+            const shouldShow =
+              Dom.chatWindow.scrollHeight > Dom.chatWindow.clientHeight &&
+              !isNearBottom();
+            if (scrollBtnTimer) {
+              clearTimeout(scrollBtnTimer);
+              scrollBtnTimer = null;
+            }
+            if (!shouldShow) {
+              if (scrollBtnVisible) {
+                Dom.scrollToBottomBtn.classList.add("hidden");
+                scrollBtnVisible = false;
+              }
+              return;
+            }
+            scrollBtnTimer = setTimeout(() => {
+              if (!isNearBottom()) {
+                Dom.scrollToBottomBtn.classList.remove("hidden");
+                scrollBtnVisible = true;
+              }
+              scrollBtnTimer = null;
+            }, SCROLL_BTN_DELAY_MS);
+          };
+
+          const scrollToBottom = () => {
+            Dom.chatWindow.scrollTo({
+              top: Dom.chatWindow.scrollHeight,
+              behavior: "smooth",
+            });
+            updateScrollToBottomButton();
+          };
+
+          const setRoomMeta = (text) => {
+            Dom.roomMeta.textContent = text;
+          };
+
+          const getOwnerNickname = () => {
+            const ownerId = State.session.ownerId;
+            if (!ownerId) return "";
+            const match = State.session.entries.find((entry) => entry.userId === ownerId);
+            if (match && match.nickname) return match.nickname;
+            return ownerId;
+          };
+
+          const updateRoomTitle = () => {
+            const ownerName = getOwnerNickname();
+            if (ownerName) {
+              Dom.roomTitle.textContent = `${ownerName}님의 방`;
+            } else {
+              Dom.roomTitle.textContent = State.session.roomId || "Room";
+            }
+            if (Dom.roomIdText) {
+              Dom.roomIdText.textContent = State.session.roomId
+                ? `${State.session.roomId}`
+                : "";
+            }
+          };
+
+          const copyRoomId = async () => {
+            if (!State.session.roomId || !Dom.copyRoomIdBtn) {
+              return;
+            }
+            try {
+              await navigator.clipboard.writeText(State.session.roomId);
+              Dom.copyRoomIdBtn.textContent = "Copied";
+              setTimeout(() => {
+                Dom.copyRoomIdBtn.textContent = "Copy";
+              }, 1000);
+            } catch (e) {
+              openSystemModal("복사에 실패했습니다.");
+            }
+          };
+
+          const openCreateModal = () => {
+            setModalOpen(Dom.createRoomModal, true);
+            Dom.nicknameInput.focus();
+          };
+
+          const closeCreateModal = () => {
+            setModalOpen(Dom.createRoomModal, false);
+            Dom.nicknameInput.value = "";
+          };
+
+          const openJoinModal = () => {
+            setModalOpen(Dom.joinRoomModal, true);
+            Dom.joinNicknameInput.focus();
+          };
+
+          const closeJoinModal = () => {
+            setModalOpen(Dom.joinRoomModal, false);
+            Dom.joinNicknameInput.value = "";
+            Dom.joinRoomIdInput.value = "";
+          };
+
+          const openJoinProgress = (message) => {
+            Dom.joinProgressText.textContent = message;
+            setModalOpen(Dom.joinProgressModal, true);
+          };
+
+          const updateJoinProgress = (message) => {
+            Dom.joinProgressText.textContent = message;
+          };
+
+          const closeJoinProgress = () => {
+            setModalOpen(Dom.joinProgressModal, false);
+          };
+
+          const setJoinProgressTime = (text) => {
+            if (!Dom.joinProgressTime) return;
+            Dom.joinProgressTime.textContent = text;
+          };
+
+          const openReconnectModal = (message) => {
+            Dom.reconnectText.textContent = message;
+            setModalOpen(Dom.reconnectModal, true);
+          };
+
+          const updateReconnectStatus = (message) => {
+            Dom.reconnectText.textContent = message;
+          };
+
+          const closeReconnectModal = () => {
+            setModalOpen(Dom.reconnectModal, false);
+          };
+
+          const setReconnectTime = (text) => {
+            if (!Dom.reconnectTime) return;
+            Dom.reconnectTime.textContent = text;
+          };
+
+          const showJoinStatus = (message) => {
+            if (Dom.chatView.classList.contains("hidden")) {
+              openJoinProgress(message);
+              return;
+            }
+            appendSystemMessage(message);
+          };
+
+          const showReconnectStatus = (message) => {
+            updateReconnectStatus(message);
+          };
+
+          const buildRoomLink = () => {
+            if (!State.session.roomId) return "";
+            const url = new URL(window.location.href);
+            url.searchParams.set("roomId", State.session.roomId);
+            url.searchParams.delete("nick");
+            return url.toString();
+          };
+
+          const copyRoomLink = async () => {
+            const link = buildRoomLink();
+            if (!link) {
+              appendSystemMessage("방 링크를 만들 수 없습니다.");
+              return;
+            }
+            try {
+              await navigator.clipboard.writeText(link);
+              if (Dom.copyRoomLinkBtn) {
+                Dom.copyRoomLinkBtn.textContent = "Copied";
+                Dom.copyRoomLinkBtn.classList.add("is-copied");
+                if (copyResetTimer) {
+                  clearTimeout(copyResetTimer);
+                }
+                copyResetTimer = setTimeout(() => {
+                  Dom.copyRoomLinkBtn.textContent = "Link";
+                  Dom.copyRoomLinkBtn.classList.remove("is-copied");
+                  copyResetTimer = null;
+                }, COPY_RESET_MS);
+              }
+            } catch (e) {
+              openSystemModal("복사에 실패했습니다.");
+            }
+          };
+
+          const openJoinApproveModal = (payload) => {
+            State.pendingJoinRequest = payload;
+            const name = payload.nickname || payload.requestedUserId || "someone";
+            Dom.joinApproveText.textContent = `${name} 님이 참여를 요청했습니다.`;
+            setModalOpen(Dom.joinApproveModal, true);
+          };
+
+          const closeJoinApproveModal = () => {
+            setModalOpen(Dom.joinApproveModal, false);
+            State.pendingJoinRequest = null;
+          };
+
+          const openSystemModal = (message) => {
+            Dom.systemModalText.textContent = message;
+            setModalOpen(Dom.systemModal, true);
+          };
+
+          const closeSystemModal = () => {
+            setModalOpen(Dom.systemModal, false);
+          };
+
+          const openLeaveRoomModal = () => {
+            setModalOpen(Dom.leaveRoomModal, true);
+            if (Dom.confirmLeaveBtn) {
+              Dom.confirmLeaveBtn.focus();
+            }
+          };
+
+          const closeLeaveRoomModal = () => {
+            setModalOpen(Dom.leaveRoomModal, false);
+          };
+
+          const openToastModal = (message, durationMs = 1000) => {
+            Dom.toastModalText.textContent = message;
+            setModalOpen(Dom.toastModal, true);
+            setTimeout(() => {
+              setModalOpen(Dom.toastModal, false);
+            }, durationMs);
+          };
+
+          const appendSystemMessage = (text) => {
+            const shouldStick = isNearBottom();
+            const notice = document.createElement("div");
+            notice.className = "system-message";
+            notice.textContent = text;
+            Dom.chatWindow.appendChild(notice);
+            lastTimeLabelSelf = "";
+            lastTimeElSelf = null;
+            lastTimeLabelOther = "";
+            lastTimeElOther = null;
+            lastSenderId = "";
+            lastSenderEl = null;
+            if (shouldStick) {
+              Dom.chatWindow.scrollTo({
+                top: Dom.chatWindow.scrollHeight,
+                behavior: "smooth",
+              });
+            }
+            updateScrollToBottomButton();
+          };
+
+          const appendMessage = (text, sender, isSelf, sentAt, senderId) => {
+            const shouldStick = isNearBottom();
+            const bubble = document.createElement("div");
+            bubble.className = `bubble ${isSelf ? "out" : "in"}`;
+            if (!isSelf) {
+              const senderLabel = sender;
+              if (senderLabel) {
+                const senderEl = document.createElement("div");
+                senderEl.className = "bubble-sender";
+                senderEl.textContent = senderLabel;
+                Dom.chatWindow.appendChild(senderEl);
+                lastSenderId = senderId || senderLabel;
+                lastSenderEl = senderEl;
+              }
+            }
+            const content = document.createElement("p");
+            content.textContent = text;
+            bubble.appendChild(content);
+            const timeText = Utils.formatTime(sentAt || Date.now());
+            Dom.chatWindow.appendChild(bubble);
+            if (timeText) {
+              const isSelfMsg = isSelf === true;
+              if (isSelfMsg && lastTimeElSelf) {
+                lastTimeElSelf.remove();
+              }
+              if (!isSelfMsg && lastTimeElOther) {
+                lastTimeElOther.remove();
+              }
+              const time = document.createElement("div");
+              time.className = `bubble-time ${isSelf ? "out" : "in"}`;
+              time.textContent = timeText;
+              Dom.chatWindow.appendChild(time);
+              if (isSelfMsg) {
+                lastTimeLabelSelf = timeText;
+                lastTimeElSelf = time;
+              } else {
+                lastTimeLabelOther = timeText;
+                lastTimeElOther = time;
+              }
+            }
+            if (shouldStick) {
+              Dom.chatWindow.scrollTo({
+                top: Dom.chatWindow.scrollHeight,
+                behavior: "smooth",
+              });
+            }
+            updateScrollToBottomButton();
+          };
+
+          const updateEntriesUI = () => {
+            if (!Dom.entriesWrap || !Dom.entriesBtn || !Dom.entriesList) {
+              return;
+            }
+            const count = State.session.entries.length;
+            Dom.entriesBtn.textContent = `Entries (${count})`;
+            Dom.entriesList.innerHTML = "";
+            if (!count) {
+              const empty = document.createElement("li");
+              empty.className = "entries-item muted";
+              empty.textContent = "No participants";
+              Dom.entriesList.appendChild(empty);
+              return;
+            }
+            State.session.entries.forEach((entry) => {
+              const item = document.createElement("li");
+              item.className = "entries-item";
+              const isOwner = State.session.ownerId && entry.userId === State.session.ownerId;
+              const isSelf = State.session.userId && entry.userId === State.session.userId;
+              if (isOwner) {
+                item.classList.add("is-owner");
+              }
+              if (isSelf) {
+                item.classList.add("is-self");
+              }
+              const name = entry.nickname || entry.userId || "user";
+              item.textContent = name;
+              if (isOwner) {
+                const badge = document.createElement("span");
+                badge.className = "owner-badge";
+                badge.textContent = "owner";
+                item.appendChild(badge);
+              }
+              Dom.entriesList.appendChild(item);
+            });
+            updateRoomTitle();
+          };
+
+          const enterRoomView = (roomId, nickname) => {
+            setRoomMeta(`Connected as ${nickname}`);
+            Dom.chatWindow.innerHTML = "";
+            Dom.homeView.classList.add("hidden");
+            Dom.chatView.classList.remove("hidden");
+            updateEntriesUI();
+            updateScrollToBottomButton();
+            scrollToBottom();
+          };
+
+          const exitRoomView = () => {
+            Dom.chatInput.value = "";
+            Dom.chatView.classList.add("hidden");
+            Dom.homeView.classList.remove("hidden");
+          };
+
+          return {
+            setRoomMeta,
+            openCreateModal,
+            closeCreateModal,
+            openJoinModal,
+            closeJoinModal,
+            openJoinProgress,
+            updateJoinProgress,
+            closeJoinProgress,
+            setJoinProgressTime,
+            showJoinStatus,
+            showReconnectStatus,
+            openReconnectModal,
+            closeReconnectModal,
+            setReconnectTime,
+            copyRoomLink,
+            copyRoomId,
+            openJoinApproveModal,
+            closeJoinApproveModal,
+            openSystemModal,
+            closeSystemModal,
+            openToastModal,
+            openLeaveRoomModal,
+            closeLeaveRoomModal,
+            appendSystemMessage,
+            appendMessage,
+            updateEntriesUI,
+            enterRoomView,
+            exitRoomView,
+            scrollToBottom,
+            updateScrollToBottomButton,
+          };
+        })();
+
+        const JoinFlow = (() => {
+          const WAIT_MS = 60000;
+          let timer = null;
+          let deadline = null;
+
+          const clearTimer = () => {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+            }
+          };
+
+          const stopCountdown = () => {
+            clearTimer();
+            deadline = null;
+          };
+
+          const finish = () => {
+            stopCountdown();
+            State.join.pending = false;
+          };
+
+          const timeout = () => {
+            console.log("[join-flow] timeout");
+            finish();
+            UI.setJoinProgressTime("--:--");
+            UI.closeJoinProgress();
+            UI.openSystemModal("참여 대기 시간이 초과되었습니다.");
+          };
+
+          const tick = () => {
+            if (!deadline) return;
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) {
+              timeout();
+              return;
+            }
+            const totalSeconds = Math.ceil(remaining / 1000);
+            const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+            const ss = String(totalSeconds % 60).padStart(2, "0");
+            UI.setJoinProgressTime(`${mm}:${ss}`);
+          };
+
+          const start = (message) => {
+            console.log("[join-flow] start", { message });
+            State.join.pending = true;
+            deadline = Date.now() + WAIT_MS;
+            UI.setJoinProgressTime("--:--");
+            UI.openJoinProgress(message);
+            tick();
+            clearTimer();
+            timer = setInterval(tick, 1000);
+          };
+
+          const cancel = () => {
+            console.log("[join-flow] cancel");
+            finish();
+            UI.setJoinProgressTime("--:--");
+            UI.closeJoinProgress();
+          };
+
+          const isPending = () => State.join.pending;
+
+          return {
+            start,
+            cancel,
+            finish,
+            stopCountdown,
+            isPending,
+          };
+        })();
+
+        const ReconnectFlow = (() => {
+          const WAIT_MS = 60000;
+          let timer = null;
+          let deadline = null;
+
+          const clearTimer = () => {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+            }
+          };
+
+          const stopCountdown = () => {
+            clearTimer();
+            deadline = null;
+          };
+
+          const finish = () => {
+            stopCountdown();
+            State.reconnect.pending = false;
+            State.reconnect.mode = "none";
+          };
+
+          const timeout = () => {
+            finish();
+            State.reconnect.blocked = true;
+            UI.setReconnectTime("--:--");
+            UI.closeReconnectModal();
+            State.clearSession(true);
+            UI.exitRoomView();
+            WsClient.stopReconnect();
+            UI.openSystemModal("연결이 끊어졌습니다. 새로고침 해주세요.");
+          };
+
+          const tick = () => {
+            if (!deadline) return;
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) {
+              timeout();
+              return;
+            }
+            const totalSeconds = Math.ceil(remaining / 1000);
+            const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+            const ss = String(totalSeconds % 60).padStart(2, "0");
+            UI.setReconnectTime(`${mm}:${ss}`);
+          };
+
+          const start = (message, mode = "base") => {
+            if (State.reconnect.blocked) return;
+            if (State.reconnect.pending) {
+              UI.showReconnectStatus(message);
+              return;
+            }
+            State.reconnect.pending = true;
+            State.reconnect.mode = mode;
+            deadline = Date.now() + WAIT_MS;
+            UI.setReconnectTime("--:--");
+            UI.openReconnectModal(message);
+            tick();
+            clearTimer();
+            timer = setInterval(tick, 1000);
+          };
+
+          const cancel = () => {
+            finish();
+            UI.setReconnectTime("--:--");
+            UI.closeReconnectModal();
+          };
+
+          const isPending = () => State.reconnect.pending;
+          const isRejoin = () => State.reconnect.mode === "rejoin";
+
+          return {
+            start,
+            cancel,
+            finish,
+            stopCountdown,
+            isPending,
+            isRejoin,
+            timeout,
+          };
+        })();
+
+        const WsClient = (() => {
+          let socket = null;
+          let heartbeatTimer = null;
+          let heartbeatAckTimer = null;
+          let heartbeatRequestId = "";
+          let reconnectTimer = null;
+          let reconnecting = false;
+
+          const isOpen = () => socket && socket.readyState === WebSocket.OPEN;
+
+          const sendRaw = (frame) => {
+            if (!isOpen()) return false;
+            socket.send(JSON.stringify(frame));
+            return true;
+          };
+
+          const sendCommand = (action, payload) => {
+            if (!isOpen()) {
+              UI.appendSystemMessage("연결이 끊어졌습니다.");
+              return null;
+            }
+            const frame = {
+              requestId: `req-${Date.now()}`,
+              type: "COMMAND",
+              action,
+              payload: payload ? JSON.stringify(payload) : null,
+            };
+            sendRaw(frame);
+            return frame.requestId;
+          };
+
+          const sendAck = (eventId) => {
+            if (!isOpen()) return;
+            const frame = {
+              requestId: `ack-${Date.now()}`,
+              eventId,
+              type: "ACK",
+            };
+            sendRaw(frame);
+          };
+
+          const startHeartbeat = () => {
+            stopHeartbeat();
+            heartbeatTimer = setInterval(() => {
+              if (!isOpen()) {
+                return;
+              }
+              const frame = {
+                requestId: `hb-${Date.now()}`,
+                type: "COMMAND",
+                action: "HEARTBEAT",
+                payload: "",
+              };
+              heartbeatRequestId = frame.requestId;
+              sendRaw(frame);
+              armHeartbeatTimeout();
+            }, Config.heartbeatIntervalMs);
+          };
+
+          const stopHeartbeat = () => {
+            if (heartbeatTimer) {
+              clearInterval(heartbeatTimer);
+              heartbeatTimer = null;
+            }
+            if (heartbeatAckTimer) {
+              clearTimeout(heartbeatAckTimer);
+              heartbeatAckTimer = null;
+            }
+          };
+
+          const armHeartbeatTimeout = () => {
+            if (heartbeatAckTimer) {
+              clearTimeout(heartbeatAckTimer);
+            }
+            heartbeatAckTimer = setTimeout(() => {
+              if (!isOpen()) {
+                return;
+              }
+              reconnectSocket("heartbeat timeout");
+            }, Config.heartbeatAckTimeoutMs);
+          };
+
+          const handleHeartbeatAck = (message) => {
+            if (message.requestId && message.requestId === heartbeatRequestId) {
+              if (heartbeatAckTimer) {
+                clearTimeout(heartbeatAckTimer);
+                heartbeatAckTimer = null;
+              }
+              return true;
+            }
+            return false;
+          };
+
+          const reconnectSocket = (reason) => {
+            if (State.reconnect.blocked) {
+              return;
+            }
+            if (reconnecting) return;
+            reconnecting = true;
+            stopHeartbeat();
+            if (socket && socket.readyState === WebSocket.OPEN) {
+              socket.close();
+            }
+            if (reconnectTimer) {
+              clearTimeout(reconnectTimer);
+            }
+            reconnectTimer = setTimeout(() => {
+              reconnecting = false;
+              connect();
+            }, Config.reconnectDelayMs);
+            UI.setRoomMeta(`Reconnecting (${reason})`);
+          };
+
+          const stopReconnect = () => {
+            if (reconnectTimer) {
+              clearTimeout(reconnectTimer);
+              reconnectTimer = null;
+            }
+            reconnecting = false;
+            if (socket && socket.readyState === WebSocket.OPEN) {
+              socket.close();
+            }
+          };
+
+          const handleSocketClosed = () => {
+            UI.setRoomMeta("Disconnected");
+            if (State.reconnect.blocked) {
+              UI.openSystemModal("연결이 끊어졌습니다. 새로고침 해주세요.");
+              return;
+            }
+            if (ReconnectFlow.isPending()) {
+              reconnectSocket("socket closed");
+              return;
+            }
+            if (State.session.roomId && State.session.nickname) {
+              ReconnectFlow.start("연결이 끊겼습니다. 재연결 시도 중...", "rejoin");
+              reconnectSocket("socket closed");
+              return;
+            }
+            ReconnectFlow.start("연결이 끊겼습니다. 재연결 시도 중...", "base");
+            reconnectSocket("socket closed");
+            if (!Dom.chatView.classList.contains("hidden")) {
+              UI.appendSystemMessage("연결이 종료되었습니다. 홈으로 이동합니다.");
+              Actions.exitRoom(false);
+            }
+          };
+
+          const connect = () => {
+            if (State.reconnect.blocked) {
+              return;
+            }
+            if (isOpen()) {
+              return;
+            }
+            const storedUserId = Utils.getStoredUserId();
+            const wsUrl = Utils.buildWsUrl(
+              Config.wsBaseUrl,
+              storedUserId || State.session.userId
+            );
+            socket = new WebSocket(wsUrl);
+            socket.onopen = () => {
+              UI.setRoomMeta("Connected");
+              startHeartbeat();
+              if (ReconnectFlow.isPending()) {
+                if (ReconnectFlow.isRejoin() && State.session.roomId && State.session.nickname) {
+                  UI.showReconnectStatus("재연결 중...");
+                  Actions.sendJoin(State.session.roomId, State.session.nickname);
+                  return;
+                }
+                ReconnectFlow.finish();
+                UI.setReconnectTime("--:--");
+                UI.closeReconnectModal();
+              } else if (!JoinFlow.isPending()) {
+                UI.setJoinProgressTime("--:--");
+                UI.closeJoinProgress();
+              }
+            };
+            socket.onmessage = (event) => Protocol.handleSocketMessage(event.data);
+            socket.onclose = () => {
+              stopHeartbeat();
+              handleSocketClosed();
+            };
+            socket.onerror = () => {
+              UI.setRoomMeta("Connection error");
+            };
+          };
+
+          return {
+            connect,
+            sendCommand,
+            sendAck,
+            handleHeartbeatAck,
+            reconnectSocket,
+            stopReconnect,
+          };
+        })();
+
+        const Actions = (() => {
+          const sendJoinRequest = async () => {
+            const requestId = WsClient.sendCommand("JOIN_REQUEST", {
+              roomId: State.join.roomId,
+              nickName: State.join.nickname,
+            });
+            if (requestId) {
+              State.join.requestId = requestId;
+            }
+          };
+
+          const sendJoin = async (roomId, nickname) => {
+            const requestId = WsClient.sendCommand("JOIN", {
+              roomId,
+              nickName: nickname,
+            });
+            if (requestId) {
+              State.join.roomId = roomId;
+              State.join.nickname = nickname;
+              State.join.joinRequestId = requestId;
+            }
+          };
+
+          const sendJoinApprove = async (roomId, requestedUserId, approved) => {
+            WsClient.sendCommand("JOIN_APPROVE", {
+              roomId,
+              requestedUserId,
+              approved,
+            });
+          };
+
+          const sendRoomCreate = async () => {
+            const requestId = WsClient.sendCommand("ROOM_CREATE", {
+              nickName: State.create.nickname,
+            });
+            if (requestId) {
+              State.create.requestId = requestId;
+            }
+          };
+
+          const runJoinFlow = async () => {
+            JoinFlow.start("요청을 보내는 중...");
+            await sendJoinRequest();
+            if (!State.join.requestId) {
+              JoinFlow.cancel();
+              return;
+            }
+          };
+
+          const runCreateFlow = async () => {
+            UI.setJoinProgressTime("--:--");
+            UI.openJoinProgress("방을 생성 요청중입니다...");
+            await sendRoomCreate();
+            if (!State.create.requestId) {
+              UI.closeJoinProgress();
+            }
+          };
+
+          const enterRoom = (roomId, nickname) => {
+            State.session.roomId = roomId;
+            State.session.nickname = nickname;
+            UI.enterRoomView(roomId, nickname);
+          };
+
+          const exitRoom = (keepUserId = true) => {
+            if (State.session.roomId) {
+              WsClient.sendCommand("LEAVE", { roomId: State.session.roomId });
+            }
+            State.reconnect.pending = false;
+            State.clearSession(keepUserId);
+            UI.exitRoomView();
+          };
+
+          return {
+            sendJoinRequest,
+            sendJoin,
+            sendJoinApprove,
+            sendRoomCreate,
+            runJoinFlow,
+            runCreateFlow,
+            enterRoom,
+            exitRoom,
+          };
+        })();
+
+        const Handlers = (() => {
+          const handleAck = (message) => {
+            if (WsClient.handleHeartbeatAck(message)) {
+              return;
+            }
+            if (
+              message.action === "ROOM_CREATE" &&
+              message.requestId === State.create.requestId
+            ) {
+              UI.updateJoinProgress("방 생성 요청 수신됨...");
+              return;
+            }
+            if (
+              message.action === "JOIN_REQUEST" &&
+              message.requestId === State.join.requestId
+            ) {
+              UI.updateJoinProgress("승인을 기다리고 있습니다...");
+              return;
+            }
+            if (
+              message.action === "JOIN" &&
+              message.requestId === State.join.joinRequestId
+            ) {
+              UI.updateJoinProgress("참여 처리 중...");
+            }
+          };
+
+          const handleResult = (message) => {
+            const payload = Utils.parsePayload(message.payload);
+
+            if (message.action === "ROOM_CREATE") {
+              if (message.status === "ERROR") {
+                UI.updateJoinProgress("방 생성 실패.");
+                UI.closeJoinProgress();
+                return;
+              }
+              const roomId = payload?.roomId;
+              const ownerId = payload?.ownerId;
+              const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+              if (roomId) {
+                State.create.roomId = roomId;
+              }
+              if (ownerId) {
+                State.session.ownerId = ownerId;
+              }
+              if (entries.length) {
+                State.session.entries = entries;
+              }
+              UI.closeJoinProgress();
+              Actions.enterRoom(roomId, State.create.nickname);
+              UI.updateEntriesUI();
+              return;
+            }
+
+            if (message.action === "JOIN") {
+              if (message.status === "ERROR") {
+                console.log("[join-flow] join result error", message);
+                UI.updateJoinProgress("참여 실패.");
+                if (ReconnectFlow.isPending()) {
+                  ReconnectFlow.cancel();
+                  State.clearSession(true);
+                  UI.exitRoomView();
+                  UI.openSystemModal("재입장에 실패하였습니다.");
+                } else {
+                  JoinFlow.cancel();
+                }
+                return;
+              }
+              console.log("[join-flow] join result success", message);
+              const roomId = payload?.roomId || State.join.roomId;
+              const ownerId = payload?.ownerId;
+              const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+              if (ownerId) {
+                State.session.ownerId = ownerId;
+              }
+              if (entries.length) {
+                State.session.entries = entries;
+              }
+              if (ReconnectFlow.isPending() && !Dom.chatView.classList.contains("hidden")) {
+                ReconnectFlow.finish();
+                UI.setReconnectTime("--:--");
+                UI.closeReconnectModal();
+                UI.setRoomMeta(`Connected as ${State.session.nickname}`);
+                UI.updateEntriesUI();
+                UI.appendSystemMessage("재연결되었습니다.");
+              } else {
+                JoinFlow.cancel();
+                Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
+                UI.updateEntriesUI();
+              }
+              return;
+            }
+
+            if (message.action === "JOIN_REQUEST") {
+              if (message.status === "ERROR") {
+                console.log("[join-flow] join request error", message);
+                UI.updateJoinProgress("승인 요청 실패.");
+                JoinFlow.cancel();
+              }
+            }
+          };
+
+          const handleNotify = (message) => {
+            const payload = Utils.parsePayload(message.payload);
+            if (!payload) return;
+
+            if (message.action === "JOIN") {
+              UI.appendSystemMessage(`${payload.nickname || payload.userId} joined.`);
+              if (payload.userId) {
+                const exists = State.session.entries.some(
+                  (entry) => entry.userId === payload.userId
+                );
+                if (!exists) {
+                  State.session.entries = [
+                    ...State.session.entries,
+                    { userId: payload.userId, nickname: payload.nickname || "" },
+                  ];
+                }
+                UI.updateEntriesUI();
+              }
+              return;
+            }
+
+            if (message.action === "LEAVE") {
+              UI.appendSystemMessage(`${payload.nickname || payload.userId} left.`);
+              if (payload.newOwnerId) {
+                State.session.ownerId = payload.newOwnerId;
+              }
+              if (payload.userId) {
+                State.session.entries = State.session.entries.filter(
+                  (entry) => entry.userId !== payload.userId
+                );
+              }
+              UI.updateEntriesUI();
+              return;
+            }
+
+            if (message.action === "JOIN_REQUEST") {
+              if (
+                State.session.userId &&
+                State.session.ownerId &&
+                State.session.userId === State.session.ownerId &&
+                payload.roomId === State.session.roomId
+              ) {
+                UI.openJoinApproveModal(payload);
+              }
+              return;
+            }
+
+            if (message.action === "JOIN_APPROVE") {
+              if (!JoinFlow.isPending()) {
+                console.log("[join-flow] approve ignored (not pending)", message);
+                return;
+              }
+              if (payload.requestedUserId && payload.requestedUserId !== State.session.userId) {
+                console.log("[join-flow] approve ignored (other user)", message);
+                return;
+              }
+              if (payload.approved) {
+                console.log("[join-flow] approve accepted", message);
+                UI.showJoinStatus("참여 요청이 승인되었습니다.");
+                JoinFlow.stopCountdown();
+                Actions.sendJoin(payload.roomId, State.join.nickname);
+              } else {
+                console.log("[join-flow] approve rejected", message);
+                JoinFlow.cancel();
+                UI.openSystemModal("참여가 거부되었습니다.");
+              }
+            }
+          };
+
+          const handleChatMessage = (message) => {
+            let payload = null;
+            try {
+              payload = message.payload ? JSON.parse(message.payload) : null;
+            } catch (e) {
+              payload = null;
+            }
+            if (payload) {
+              const sender = payload.nickname || payload.userId || "user";
+              const isSelf =
+                payload.nickname && payload.nickname === State.session.nickname;
+              UI.appendMessage(
+                payload.message || "",
+                sender,
+                isSelf,
+                payload.sentAt,
+                payload.userId
+              );
+            }
+          };
+
+          return { handleAck, handleResult, handleNotify, handleChatMessage };
+        })();
+
+        const Protocol = (() => {
+          const handleSocketMessage = (data) => {
+            let message;
+            try {
+              message = JSON.parse(data);
+            } catch (e) {
+              return;
+            }
+
+            if (message.type !== "ACK" && message.eventId) {
+              WsClient.sendAck(message.eventId);
+            }
+
+            if (message.type === "SYSTEM" && message.action === "CONN_OPENED") {
+              const payload = Utils.parsePayload(message.payload);
+              if (payload?.userId) {
+                State.session.userId = payload.userId;
+                Utils.setStoredUserId(payload.userId);
+              }
+              return;
+            }
+
+            if (message.type === "ACK") {
+              Handlers.handleAck(message);
+              return;
+            }
+
+            if (message.type === "RESULT") {
+              Handlers.handleResult(message);
+              return;
+            }
+
+            if (message.type === "NOTIFY") {
+              Handlers.handleNotify(message);
+              return;
+            }
+
+            if (message.type === "MESSAGE" && message.action === "CLIENT_MESSAGE") {
+              Handlers.handleChatMessage(message);
+            }
+          };
+
+          return { handleSocketMessage };
+        })();
+
+        const Events = (() => {
+          const bind = () => {
+            Dom.createRoomBtn.addEventListener("click", UI.openCreateModal);
+            Dom.closeModalBtn.addEventListener("click", UI.closeCreateModal);
+            Dom.cancelCreateBtn.addEventListener("click", UI.closeCreateModal);
+            Dom.createRoomModal.addEventListener("click", (event) => {
+              if (event.target === Dom.createRoomModal) {
+                UI.closeCreateModal();
+              }
+            });
+            Dom.confirmCreateBtn.addEventListener("click", () => {
+              const nickname = Dom.nicknameInput.value.trim();
+              if (!nickname) {
+                Dom.nicknameInput.focus();
+                return;
+              }
+              UI.closeCreateModal();
+              State.resetCreate(nickname);
+              Actions.runCreateFlow();
+            });
+            Dom.nicknameInput.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              Dom.confirmCreateBtn.click();
+            });
+
+            Dom.joinRoomBtn.addEventListener("click", UI.openJoinModal);
+            Dom.closeJoinModalBtn.addEventListener("click", UI.closeJoinModal);
+            Dom.cancelJoinBtn.addEventListener("click", UI.closeJoinModal);
+            Dom.joinRoomModal.addEventListener("click", (event) => {
+              if (event.target === Dom.joinRoomModal) {
+                UI.closeJoinModal();
+              }
+            });
+            Dom.confirmJoinBtn.addEventListener("click", () => {
+              const nickname = Dom.joinNicknameInput.value.trim();
+              const roomId = Dom.joinRoomIdInput.value.trim();
+              if (!nickname) {
+                Dom.joinNicknameInput.focus();
+                return;
+              }
+              if (!roomId) {
+                Dom.joinRoomIdInput.focus();
+                return;
+              }
+              console.log("[join-flow] confirm join", { nickname, roomId });
+              UI.closeJoinModal();
+              State.resetJoin(nickname, roomId);
+              Actions.runJoinFlow();
+            });
+            Dom.joinNicknameInput.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              Dom.confirmJoinBtn.click();
+            });
+            Dom.joinRoomIdInput.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              Dom.confirmJoinBtn.click();
+            });
+
+            Dom.backToHomeBtn.addEventListener("click", UI.openLeaveRoomModal);
+            Dom.chatWindow.addEventListener("scroll", UI.updateScrollToBottomButton);
+            Dom.scrollToBottomBtn.addEventListener("click", UI.scrollToBottom);
+            Dom.copyRoomLinkBtn.addEventListener("click", UI.copyRoomLink);
+            Dom.copyRoomIdBtn.addEventListener("click", UI.copyRoomId);
+            Dom.closeJoinProgressBtn.addEventListener("click", () => {
+              console.log("[join-flow] user cancel (close button)");
+              if (JoinFlow.isPending()) {
+                JoinFlow.cancel();
+              } else {
+                UI.closeJoinProgress();
+              }
+            });
+            Dom.closeReconnectBtn.addEventListener("click", () => {
+              console.log("[reconnect-flow] user cancel (close button)");
+              ReconnectFlow.timeout();
+            });
+            Dom.reconnectModal.addEventListener("click", (event) => {
+              if (event.target === Dom.reconnectModal) {
+                ReconnectFlow.timeout();
+              }
+            });
+
+            Dom.closeJoinApproveBtn.addEventListener("click", UI.closeJoinApproveModal);
+            Dom.joinApproveModal.addEventListener("click", (event) => {
+              if (event.target === Dom.joinApproveModal) {
+                UI.closeJoinApproveModal();
+              }
+            });
+            Dom.approveJoinBtn.addEventListener("click", () => {
+              if (!State.pendingJoinRequest) return;
+              Actions.sendJoinApprove(
+                State.pendingJoinRequest.roomId,
+                State.pendingJoinRequest.requestedUserId,
+                true
+              );
+              UI.closeJoinApproveModal();
+            });
+            Dom.denyJoinBtn.addEventListener("click", () => {
+              if (!State.pendingJoinRequest) return;
+              Actions.sendJoinApprove(
+                State.pendingJoinRequest.roomId,
+                State.pendingJoinRequest.requestedUserId,
+                false
+              );
+              UI.closeJoinApproveModal();
+            });
+
+            Dom.closeSystemModalBtn.addEventListener("click", UI.closeSystemModal);
+            Dom.confirmSystemModalBtn.addEventListener("click", UI.closeSystemModal);
+            Dom.systemModal.addEventListener("click", (event) => {
+              if (event.target === Dom.systemModal) {
+                UI.closeSystemModal();
+              }
+            });
+
+            Dom.closeLeaveModalBtn.addEventListener("click", UI.closeLeaveRoomModal);
+            Dom.cancelLeaveBtn.addEventListener("click", UI.closeLeaveRoomModal);
+            Dom.leaveRoomModal.addEventListener("click", (event) => {
+              if (event.target === Dom.leaveRoomModal) {
+                UI.closeLeaveRoomModal();
+              }
+            });
+            Dom.confirmLeaveBtn.addEventListener("click", () => {
+              UI.closeLeaveRoomModal();
+              Actions.exitRoom();
+            });
+
+            Dom.chatComposer.addEventListener("submit", (event) => {
+              event.preventDefault();
+              const message = Dom.chatInput.value.trim();
+              if (!message) return;
+              if (!State.session.roomId) {
+                UI.appendSystemMessage("방에 먼저 입장하세요.");
+                return;
+              }
+              const payload = {
+                roomId: State.session.roomId,
+                message,
+              };
+              const requestId = WsClient.sendCommand("CLIENT_MESSAGE", payload);
+              if (requestId) {
+                UI.appendMessage(
+                  message,
+                  "you",
+                  true,
+                  Date.now(),
+                  State.session.userId
+                );
+                UI.scrollToBottom();
+                Dom.chatInput.value = "";
+              }
+            });
+
+            window.addEventListener("online", () => {
+              if (!WsClient.connect) return;
+              WsClient.connect();
+            });
+          };
+
+          const autoOpenJoinModal = () => {
+            const roomId = Utils.getQueryParam("roomId");
+            if (!roomId) return;
+            UI.openJoinModal();
+            Dom.joinRoomIdInput.value = roomId;
+            Dom.joinNicknameInput.focus();
+          };
+
+          return { bind, autoOpenJoinModal };
+        })();
+
+        Events.bind();
+        Events.autoOpenJoinModal();
+        WsClient.connect();
+      })();
+    </script>
+  </body>
+</html>

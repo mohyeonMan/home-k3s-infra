@@ -6,3 +6,4 @@ resources:
   - redis
   - ws
   - csm
+  - client
