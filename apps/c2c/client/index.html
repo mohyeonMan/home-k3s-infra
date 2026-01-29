@@ -75,7 +75,6 @@
         height: var(--app-height, 100svh);
         overflow: hidden;
         overscroll-behavior: none;
-        touch-action: none;
       }
 
       html {
@@ -119,6 +118,11 @@
         margin: 0 auto;
         background: var(--paper-bg);
         box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
+      }
+
+      .keyboard-open .app {
+        transform: translateY(calc(-1 * var(--vv-offset, 0px)));
+        will-change: transform;
       }
 
       #chatView:not(.hidden) {
@@ -1437,6 +1441,8 @@
           let keyboardOpen = false;
           let scrollEnforceTimer = null;
           let touchMoveBound = false;
+          let lastOffsetTop = 0;
+          let focusAnchor = null;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1473,20 +1479,35 @@
             }
           };
 
+          const adjustScrollToAnchor = () => {
+            if (!focusAnchor || !focusAnchor.element) return;
+            const rect = focusAnchor.element.getBoundingClientRect();
+            const delta = rect.top - focusAnchor.visualTop;
+            if (Math.abs(delta) < 1) return;
+            window.scrollBy(0, delta);
+          };
+
           const enforceScrollTop = () => {
-            forceScrollTop();
-            requestAnimationFrame(forceScrollTop);
+            adjustScrollToAnchor();
+            requestAnimationFrame(adjustScrollToAnchor);
             if (scrollEnforceTimer) {
               clearTimeout(scrollEnforceTimer);
               scrollEnforceTimer = null;
             }
             scrollEnforceTimer = setTimeout(() => {
-              forceScrollTop();
-              scrollEnforceTimer = setTimeout(forceScrollTop, 120);
+              adjustScrollToAnchor();
+              scrollEnforceTimer = setTimeout(adjustScrollToAnchor, 120);
             }, 40);
           };
 
+          const isScrollableTarget = (target) => {
+            if (!target || !target.closest) return false;
+            return Boolean(target.closest(".chat-window"));
+          };
+
           const preventTouchMove = (event) => {
+            if (!keyboardOpen) return;
+            if (isScrollableTarget(event.target)) return;
             event.preventDefault();
           };
 
@@ -1506,11 +1527,13 @@
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
+            let offsetTop = 0;
             if (vv) {
               const delta = baseHeight - vv.height;
               if (delta > 120) {
                 height = vv.height;
                 keyboardOpen = true;
+                offsetTop = vv.offsetTop || 0;
                 bindTouchLock();
               } else {
                 keyboardOpen = false;
@@ -1519,10 +1542,23 @@
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
             lastHeight = height;
+            if (Math.abs(offsetTop - lastOffsetTop) >= 1) {
+              lastOffsetTop = offsetTop;
+            }
             document.documentElement.style.setProperty(
               "--app-height",
               `${Math.round(height)}px`
             );
+            document.documentElement.style.setProperty(
+              "--vv-offset",
+              `${Math.round(offsetTop)}px`
+            );
+            if (keyboardOpen) {
+              document.documentElement.classList.add("keyboard-open");
+            } else {
+              document.documentElement.classList.remove("keyboard-open");
+              document.documentElement.style.setProperty("--vv-offset", "0px");
+            }
           };
 
           const bind = () => {
@@ -1531,6 +1567,7 @@
               window.visualViewport.addEventListener("resize", setAppHeight);
               window.visualViewport.addEventListener("scroll", () => {
                 if (keyboardOpen) {
+                  setAppHeight();
                   enforceScrollTop();
                 }
               });
@@ -1538,6 +1575,11 @@
             window.addEventListener("resize", setAppHeight);
             document.addEventListener("focusin", (event) => {
               if (isEditableTarget(event.target)) {
+                const rect = event.target.getBoundingClientRect();
+                focusAnchor = {
+                  element: event.target,
+                  visualTop: rect.top,
+                };
                 lockScroll();
                 setAppHeight();
                 enforceScrollTop();
@@ -1549,6 +1591,9 @@
                 if (!isEditableTarget(active)) {
                   unlockScroll();
                   unbindTouchLock();
+                  document.documentElement.classList.remove("keyboard-open");
+                  document.documentElement.style.setProperty("--vv-offset", "0px");
+                  focusAnchor = null;
                 }
               }, 0);
             });
