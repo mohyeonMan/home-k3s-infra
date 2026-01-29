@@ -79,9 +79,6 @@
         margin: 0;
         min-height: var(--app-height, 100svh);
         height: var(--app-height, 100svh);
-        position: fixed;
-        inset: 0;
-        width: 100%;
         overflow: hidden;
         font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
         color: var(--text);
@@ -113,7 +110,12 @@
         min-height: var(--app-height, 100svh);
         height: var(--app-height, 100svh);
         max-width: 420px;
-        margin: 0 auto;
+        position: fixed;
+        inset: 0;
+        width: min(100%, 420px);
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
         background: var(--paper-bg);
         box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
       }
@@ -1437,7 +1439,7 @@
             if (vv) {
               const delta = baseHeight - vv.height;
               if (delta > 120) {
-                height = vv.height + vv.offsetTop;
+                height = vv.height;
               }
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
