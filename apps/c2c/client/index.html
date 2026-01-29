@@ -110,12 +110,7 @@
         min-height: var(--app-height, 100svh);
         height: var(--app-height, 100svh);
         max-width: 420px;
-        position: fixed;
-        inset: 0;
-        width: min(100%, 420px);
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0;
+        margin: 0 auto;
         background: var(--paper-bg);
         box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
       }
@@ -1431,8 +1426,10 @@
 
         const Viewport = (() => {
           let lastHeight = 0;
+          let scrollLocked = false;
+          let scrollTop = 0;
 
-        const setAppHeight = () => {
+          const setAppHeight = () => {
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
@@ -1450,12 +1447,53 @@
             );
           };
 
+          const lockScroll = () => {
+            if (scrollLocked) return;
+            scrollTop = window.scrollY || 0;
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${scrollTop}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+            scrollLocked = true;
+          };
+
+          const unlockScroll = () => {
+            if (!scrollLocked) return;
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.left = "";
+            document.body.style.right = "";
+            document.body.style.width = "";
+            window.scrollTo(0, scrollTop);
+            scrollLocked = false;
+          };
+
+          const isEditableTarget = (target) => {
+            if (!target) return false;
+            const tag = target.tagName;
+            if (tag === "INPUT" || tag === "TEXTAREA") return true;
+            return Boolean(target.isContentEditable);
+          };
+
           const bind = () => {
             setAppHeight();
             if (window.visualViewport) {
               window.visualViewport.addEventListener("resize", setAppHeight);
             }
             window.addEventListener("resize", setAppHeight);
+            document.addEventListener("focusin", (event) => {
+              if (isEditableTarget(event.target)) {
+                lockScroll();
+                setAppHeight();
+              }
+            });
+            document.addEventListener("focusout", (event) => {
+              if (isEditableTarget(event.target)) {
+                unlockScroll();
+                setAppHeight();
+              }
+            });
           };
 
           return { bind };
