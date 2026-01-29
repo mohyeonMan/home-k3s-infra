@@ -587,37 +587,6 @@
         width: 100%;
       }
 
-      @media (max-width: 520px) {
-        .app {
-          max-width: 100%;
-          padding: 12px 12px 14px;
-        }
-
-        #chatView:not(.hidden) {
-          flex: 1 1 auto;
-          min-height: 0;
-        }
-
-        .chat-stack {
-          flex: 1 1 auto;
-          gap: 6px;
-        }
-
-        .chat-window {
-          --chat-padding: 12px;
-          border-radius: 12px;
-        }
-
-        .composer {
-          padding-top: 6px;
-        }
-      }
-
-      @media (max-height: 700px) {
-        .chat-window {
-          max-height: 55vh;
-        }
-      }
 
       .chat-shell {
         flex: 1 1 auto;
@@ -1483,7 +1452,7 @@
             }
           };
 
-          return { bind, setAppHeight };
+          return { bind };
         })();
 
         const JoinFlow = (() => {
