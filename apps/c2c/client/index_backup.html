@@ -99,8 +99,8 @@
         flex-direction: column;
         gap: 16px;
         padding: 18px 16px 22px;
-        min-height: var(--app-height, 100dvh);
-        height: var(--app-height, 100dvh);
+        min-height: 100dvh;
+        height: 100dvh;
         max-width: 420px;
         margin: 0 auto;
         background: var(--paper-bg);
@@ -552,7 +552,7 @@
       }
 
       .chat-stack {
-        flex: 1 1 auto;
+        height: 70vh;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -566,11 +566,6 @@
         align-items: center;
         margin-top: 0;
         flex: 0 0 auto;
-        position: sticky;
-        bottom: 0;
-        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
-        background: var(--paper-bg);
-        border-top: 1px solid rgba(120, 95, 80, 0.12);
       }
 
       .chat-shell {
@@ -1402,44 +1397,6 @@
           };
         })();
 
-        const Viewport = (() => {
-          let lastHeight = 0;
-
-          const setAppHeight = () => {
-            const vv = window.visualViewport;
-            const height = vv ? vv.height : window.innerHeight;
-            if (!height || Math.abs(height - lastHeight) < 1) return;
-            lastHeight = height;
-            document.documentElement.style.setProperty(
-              "--app-height",
-              `${Math.round(height)}px`
-            );
-          };
-
-          const scrollOnFocus = () => {
-            if (Dom.chatView.classList.contains("hidden")) return;
-            if (Dom.chatComposer) {
-              Dom.chatComposer.scrollIntoView({ block: "end", behavior: "smooth" });
-            }
-            setTimeout(UI.scrollToBottom, 60);
-          };
-
-          const bind = () => {
-            setAppHeight();
-            if (window.visualViewport) {
-              window.visualViewport.addEventListener("resize", setAppHeight);
-              window.visualViewport.addEventListener("scroll", setAppHeight);
-            }
-            window.addEventListener("resize", setAppHeight);
-            if (Dom.chatInput) {
-              Dom.chatInput.addEventListener("focus", scrollOnFocus);
-              Dom.chatInput.addEventListener("click", scrollOnFocus);
-            }
-          };
-
-          return { bind, setAppHeight };
-        })();
-
         const JoinFlow = (() => {
           const WAIT_MS = 60000;
           let timer = null;
@@ -2119,7 +2076,6 @@
 
         const Events = (() => {
           const bind = () => {
-            Viewport.bind();
             Dom.createRoomBtn.addEventListener("click", UI.openCreateModal);
             Dom.closeModalBtn.addEventListener("click", UI.closeCreateModal);
             Dom.cancelCreateBtn.addEventListener("click", UI.closeCreateModal);
