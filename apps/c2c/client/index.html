@@ -72,21 +72,25 @@
 
       html,
       body {
-        height: 100%;
+        height: var(--app-height, 100svh);
+        overflow: hidden;
+      }
+
+      html {
+        background:
+          radial-gradient(1200px 700px at 10% -10%, var(--bg-grad-1) 0%, var(--transparent) 55%),
+          radial-gradient(900px 600px at 90% 0%, var(--bg-grad-2) 0%, var(--transparent) 50%),
+          linear-gradient(180deg, var(--bg-grad-3) 0%, var(--bg-grad-4) 100%);
       }
 
       body {
         margin: 0;
         min-height: var(--app-height, 100svh);
         height: var(--app-height, 100svh);
-        overflow: hidden;
         font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
         color: var(--text);
         -webkit-text-size-adjust: 100%;
-        background:
-          radial-gradient(1200px 700px at 10% -10%, var(--bg-grad-1) 0%, var(--transparent) 55%),
-          radial-gradient(900px 600px at 90% 0%, var(--bg-grad-2) 0%, var(--transparent) 50%),
-          linear-gradient(180deg, var(--bg-grad-3) 0%, var(--bg-grad-4) 100%);
+        background: transparent;
       }
 
       button,
