@@ -604,7 +604,6 @@
         width: 100%;
       }
 
-      body.keyboard-open .composer .btn.primary,
       .composer:focus-within .btn.primary {
         display: none;
       }
@@ -1520,8 +1519,6 @@
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
             lastHeight = height;
-            const keyboardOpen = vv ? baseHeight - vv.height > 120 : false;
-            document.body.classList.toggle("keyboard-open", keyboardOpen);
             document.documentElement.style.setProperty(
               "--app-height",
               `${Math.round(height)}px`
@@ -1547,7 +1544,6 @@
                 };
                 lockScroll();
                 setAppHeight();
-                document.body.classList.add("keyboard-open");
                 enforceScrollTop();
               }
             });
@@ -1557,7 +1553,6 @@
                 if (!isEditableTarget(active)) {
                   unlockScroll();
                   focusAnchor = null;
-                  document.body.classList.remove("keyboard-open");
                 }
               }, 0);
             });
