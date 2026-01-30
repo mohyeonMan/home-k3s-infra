@@ -1018,10 +1018,40 @@
               return "";
             }
           },
+          getStoredRoomId() {
+            try {
+              return sessionStorage.getItem("c2cRoomId") || "";
+            } catch (e) {
+              return "";
+            }
+          },
+          getStoredNickname() {
+            try {
+              return sessionStorage.getItem("c2cNickname") || "";
+            } catch (e) {
+              return "";
+            }
+          },
           setStoredUserId(userId) {
             if (!userId) return;
             try {
               sessionStorage.setItem("c2cUserId", userId);
+            } catch (e) {
+              return;
+            }
+          },
+          setStoredSession(roomId, nickname) {
+            try {
+              if (roomId) {
+                sessionStorage.setItem("c2cRoomId", roomId);
+              } else {
+                sessionStorage.removeItem("c2cRoomId");
+              }
+              if (nickname) {
+                sessionStorage.setItem("c2cNickname", nickname);
+              } else {
+                sessionStorage.removeItem("c2cNickname");
+              }
             } catch (e) {
               return;
             }
@@ -1997,6 +2027,7 @@
           const enterRoom = (roomId, nickname) => {
             State.session.roomId = roomId;
             State.session.nickname = nickname;
+            Utils.setStoredSession(roomId, nickname);
             UI.enterRoomView(roomId, nickname);
           };
 
@@ -2006,6 +2037,7 @@
             }
             State.reconnect.pending = false;
             State.clearSession(keepUserId);
+            Utils.setStoredSession("", "");
             UI.exitRoomView();
           };
 
@@ -2485,8 +2517,24 @@
           return { bind, autoOpenJoinModal };
         })();
 
+        const restoreSession = () => {
+          const roomId = Utils.getStoredRoomId();
+          const nickname = Utils.getStoredNickname();
+          if (roomId) {
+            State.session.roomId = roomId;
+          }
+          if (nickname) {
+            State.session.nickname = nickname;
+          }
+          return Boolean(roomId && nickname);
+        };
+
         Events.bind();
         Events.autoOpenJoinModal();
+        const hasStoredSession = restoreSession();
+        if (hasStoredSession && !Utils.getQueryParam("roomId")) {
+          ReconnectFlow.start("재연결 시도 중...", "rejoin");
+        }
         WsClient.connect();
       })();
     </script>
