@@ -1932,6 +1932,16 @@
             socket.onopen = () => {
               UI.setRoomMeta("Connected");
               startHeartbeat();
+              if (
+                shouldAutoRejoin &&
+                State.session.roomId &&
+                State.session.nickname
+              ) {
+                shouldAutoRejoin = false;
+                ReconnectFlow.start("재연결 시도 중...", "rejoin");
+                Actions.sendJoin(State.session.roomId, State.session.nickname);
+                return;
+              }
               if (ReconnectFlow.isPending()) {
                 if (ReconnectFlow.isRejoin() && State.session.roomId && State.session.nickname) {
                   UI.showReconnectStatus("재연결 중...");
@@ -2131,18 +2141,20 @@
               if (entries.length) {
                 State.session.entries = entries;
               }
-              if (ReconnectFlow.isPending() && !Dom.chatView.classList.contains("hidden")) {
+              if (ReconnectFlow.isPending()) {
                 ReconnectFlow.finish();
                 UI.setReconnectTime("--:--");
                 UI.closeReconnectModal();
                 UI.setRoomMeta(`Connected as ${State.session.nickname}`);
                 UI.updateEntriesUI();
-                UI.appendSystemMessage("재연결되었습니다.");
-              } else {
-                JoinFlow.cancel();
-                Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
-                UI.updateEntriesUI();
+                if (!Dom.chatView.classList.contains("hidden")) {
+                  UI.appendSystemMessage("재연결되었습니다.");
+                  return;
+                }
               }
+              JoinFlow.cancel();
+              Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
+              UI.updateEntriesUI();
               return;
             }
 
@@ -2529,11 +2541,14 @@
           return Boolean(roomId && nickname);
         };
 
+        let shouldAutoRejoin = false;
+
         Events.bind();
-        Events.autoOpenJoinModal();
         const hasStoredSession = restoreSession();
-        if (hasStoredSession && !Utils.getQueryParam("roomId")) {
-          ReconnectFlow.start("재연결 시도 중...", "rejoin");
+        if (!hasStoredSession) {
+          Events.autoOpenJoinModal();
+        } else {
+          shouldAutoRejoin = true;
         }
         WsClient.connect();
       })();
