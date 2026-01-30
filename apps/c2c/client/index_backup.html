@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>C2C Client</title>
     <style>
       :root {
@@ -70,12 +70,19 @@
         display: none;
       }
 
+      html,
+      body {
+        height: var(--app-height, 100svh);
+        overflow: hidden;
+      }
+
       body {
         margin: 0;
-        min-height: 100vh;
-        overflow: hidden;
+        min-height: var(--app-height, 100svh);
+        height: var(--app-height, 100svh);
         font: 15px/1.5 "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
         color: var(--text);
+        -webkit-text-size-adjust: 100%;
         background:
           radial-gradient(1200px 700px at 10% -10%, var(--bg-grad-1) 0%, var(--transparent) 55%),
           radial-gradient(900px 600px at 90% 0%, var(--bg-grad-2) 0%, var(--transparent) 50%),
@@ -83,13 +90,15 @@
       }
 
       button,
-      input {
+      input,
+      textarea {
         font: inherit;
         color: inherit;
       }
 
       button:focus-visible,
-      input:focus-visible {
+      input:focus-visible,
+      textarea:focus-visible {
         outline: 2px solid var(--accent-2);
         outline-offset: 2px;
       }
@@ -98,19 +107,22 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        padding: 18px 16px 22px;
-        min-height: 100dvh;
-        height: 100dvh;
+        padding: calc(18px + env(safe-area-inset-top, 0px)) 16px
+          calc(22px + env(safe-area-inset-bottom, 0px));
+        min-height: var(--app-height, 100svh);
+        height: var(--app-height, 100svh);
         max-width: 420px;
         margin: 0 auto;
         background: var(--paper-bg);
         box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
       }
 
+
       #chatView:not(.hidden) {
         display: flex;
         flex-direction: column;
-        min-height: 100vh;
+        flex: 1 1 auto;
+        min-height: 0;
         gap: 12px;
       }
 
@@ -119,6 +131,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
+        flex: 0 0 auto;
       }
 
       h1 {
@@ -200,7 +213,8 @@
         letter-spacing: 0.08em;
       }
 
-      input {
+      input,
+      textarea {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid var(--input-border);
@@ -208,6 +222,34 @@
         background: var(--input-bg);
         color: var(--text);
         font: inherit;
+        font-size: 16px;
+      }
+
+      #chatInput,
+      #nicknameInput,
+      #joinNicknameInput,
+      #joinRoomIdInput {
+        font-size: 16px;
+      }
+
+      textarea {
+        resize: none;
+        min-height: 40px;
+        max-height: 140px;
+        overflow-y: auto;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        textarea {
+          overflow-y: hidden;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        textarea::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+        }
       }
 
       .actions {
@@ -229,7 +271,7 @@
 
       .btn.primary {
         background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-        color: var(--primary-text);
+        color: var(--bubble-out-text);
         border: none;
         font-weight: 600;
       }
@@ -402,11 +444,19 @@
         z-index: 2;
       }
 
-      .entries-wrap:hover .entries-panel,
-      .entries-wrap:focus-within .entries-panel {
+      .entries-wrap.is-open .entries-panel {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .entries-wrap:hover .entries-panel,
+        .entries-wrap:focus-within .entries-panel {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
       }
 
       .entries-list {
@@ -460,7 +510,8 @@
         display: flex;
         flex-direction: column;
         gap: 0;
-        padding: 14px;
+        --chat-padding: 14px;
+        padding: var(--chat-padding);
         border-radius: 16px;
         background: var(--panel);
         border: 1px solid var(--border);
@@ -468,6 +519,7 @@
         min-height: 0;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        width: 100%;
       }
 
       .chat-window::-webkit-scrollbar {
@@ -506,15 +558,16 @@
 
       .system-message {
         align-self: stretch;
-        width: 100%;
-        max-width: 100%;
-        margin: 6px 0;
-        padding: 4px 12px;
+        width: calc(100% + (2 * var(--chat-padding)));
+        margin: 4px 0;
+        margin-left: calc(-1 * var(--chat-padding));
+        margin-right: calc(-1 * var(--chat-padding));
+        padding: 1px 12px;
         font-size: 12px;
         color: var(--muted);
         text-align: center;
         background: rgba(210, 210, 210, 0.55);
-        border-radius: 8px;
+        border-radius: 0;
       }
 
       .meta {
@@ -527,6 +580,7 @@
 
       .bubble p {
         margin: 0;
+        white-space: pre-wrap;
       }
 
       .bubble-time {
@@ -552,7 +606,7 @@
       }
 
       .chat-stack {
-        height: 70vh;
+        flex: 1 1 auto;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -563,9 +617,15 @@
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 10px;
-        align-items: center;
+        align-items: end;
         margin-top: 0;
         flex: 0 0 auto;
+        position: sticky;
+        bottom: 0;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+        background: var(--paper-bg);
+        border-top: none;
+        width: 100%;
       }
 
       .chat-shell {
@@ -662,7 +722,17 @@
 
           <!-- Message composer -->
           <form class="composer" id="chatComposer" action="#" method="post">
-            <input type="text" id="chatInput" placeholder="Type a message..." />
+            <textarea
+              id="chatInput"
+              placeholder="Type a message..."
+              rows="1"
+              enterkeyhint="enter"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+            ></textarea>
             <button class="btn primary" type="submit">Send</button>
           </form>
         </div>
@@ -948,10 +1018,40 @@
               return "";
             }
           },
+          getStoredRoomId() {
+            try {
+              return sessionStorage.getItem("c2cRoomId") || "";
+            } catch (e) {
+              return "";
+            }
+          },
+          getStoredNickname() {
+            try {
+              return sessionStorage.getItem("c2cNickname") || "";
+            } catch (e) {
+              return "";
+            }
+          },
           setStoredUserId(userId) {
             if (!userId) return;
             try {
               sessionStorage.setItem("c2cUserId", userId);
+            } catch (e) {
+              return;
+            }
+          },
+          setStoredSession(roomId, nickname) {
+            try {
+              if (roomId) {
+                sessionStorage.setItem("c2cRoomId", roomId);
+              } else {
+                sessionStorage.removeItem("c2cRoomId");
+              }
+              if (nickname) {
+                sessionStorage.setItem("c2cNickname", nickname);
+              } else {
+                sessionStorage.removeItem("c2cNickname");
+              }
             } catch (e) {
               return;
             }
@@ -974,6 +1074,7 @@
           let lastTimeElSelf = null;
           let lastTimeLabelOther = "";
           let lastTimeElOther = null;
+          let lastMessageIsSelf = null;
           let lastSenderId = "";
           let lastSenderEl = null;
 
@@ -1249,6 +1350,7 @@
             lastTimeElSelf = null;
             lastTimeLabelOther = "";
             lastTimeElOther = null;
+            lastMessageIsSelf = null;
             lastSenderId = "";
             lastSenderEl = null;
             if (shouldStick) {
@@ -1282,10 +1384,10 @@
             Dom.chatWindow.appendChild(bubble);
             if (timeText) {
               const isSelfMsg = isSelf === true;
-              if (isSelfMsg && lastTimeElSelf) {
+              if (isSelfMsg && lastMessageIsSelf === true && lastTimeElSelf) {
                 lastTimeElSelf.remove();
               }
-              if (!isSelfMsg && lastTimeElOther) {
+              if (!isSelfMsg && lastMessageIsSelf === false && lastTimeElOther) {
                 lastTimeElOther.remove();
               }
               const time = document.createElement("div");
@@ -1299,6 +1401,7 @@
                 lastTimeLabelOther = timeText;
                 lastTimeElOther = time;
               }
+              lastMessageIsSelf = isSelfMsg;
             }
             if (shouldStick) {
               Dom.chatWindow.scrollTo({
@@ -1395,6 +1498,120 @@
             scrollToBottom,
             updateScrollToBottomButton,
           };
+        })();
+
+        const Viewport = (() => {
+          let lastHeight = 0;
+          let scrollLocked = false;
+          let scrollTop = 0;
+          let scrollEnforceTimer = null;
+          let focusAnchor = null;
+
+          const isEditableTarget = (target) => {
+            if (!target) return false;
+            const tag = target.tagName;
+            if (tag === "INPUT" || tag === "TEXTAREA") return true;
+            return Boolean(target.isContentEditable);
+          };
+
+          const lockScroll = () => {
+            if (scrollLocked) return;
+            scrollTop = window.scrollY || 0;
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${scrollTop}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+            scrollLocked = true;
+          };
+
+          const unlockScroll = () => {
+            if (!scrollLocked) return;
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.left = "";
+            document.body.style.right = "";
+            document.body.style.width = "";
+            window.scrollTo(0, scrollTop);
+            scrollLocked = false;
+          };
+
+          const adjustScrollToAnchor = () => {
+            if (!focusAnchor || !focusAnchor.element) return;
+            const rect = focusAnchor.element.getBoundingClientRect();
+            const delta = rect.top - focusAnchor.visualTop;
+            if (Math.abs(delta) < 1) return;
+            window.scrollBy(0, delta);
+          };
+
+          const enforceScrollTop = () => {
+            adjustScrollToAnchor();
+            requestAnimationFrame(adjustScrollToAnchor);
+            if (scrollEnforceTimer) {
+              clearTimeout(scrollEnforceTimer);
+              scrollEnforceTimer = null;
+            }
+            scrollEnforceTimer = setTimeout(() => {
+              adjustScrollToAnchor();
+              scrollEnforceTimer = setTimeout(adjustScrollToAnchor, 120);
+            }, 40);
+          };
+
+          const setAppHeight = () => {
+            const baseHeight = window.innerHeight;
+            const vv = window.visualViewport;
+            let height = baseHeight;
+            if (vv) {
+              const delta = baseHeight - vv.height;
+              if (delta > 120) {
+                height = vv.height;
+              }
+            }
+            if (!height || Math.abs(height - lastHeight) < 1) return;
+            lastHeight = height;
+            document.documentElement.style.setProperty(
+              "--app-height",
+              `${Math.round(height)}px`
+            );
+          };
+
+          const bind = () => {
+            setAppHeight();
+            if (window.visualViewport) {
+              window.visualViewport.addEventListener("resize", setAppHeight);
+              window.visualViewport.addEventListener("scroll", () => {
+                setAppHeight();
+                if (focusAnchor) enforceScrollTop();
+              });
+            }
+            window.addEventListener("resize", setAppHeight);
+            document.addEventListener("focusin", (event) => {
+              if (isEditableTarget(event.target)) {
+                const rect = event.target.getBoundingClientRect();
+                focusAnchor = {
+                  element: event.target,
+                  visualTop: rect.top,
+                };
+                lockScroll();
+                setAppHeight();
+                enforceScrollTop();
+              }
+            });
+            document.addEventListener("focusout", () => {
+              setTimeout(() => {
+                const active = document.activeElement;
+                if (!isEditableTarget(active)) {
+                  unlockScroll();
+                  focusAnchor = null;
+                }
+              }, 0);
+            });
+            window.addEventListener("scroll", () => {
+              if (focusAnchor) enforceScrollTop();
+            });
+          };
+
+          return { bind };
         })();
 
         const JoinFlow = (() => {
@@ -1715,6 +1932,16 @@
             socket.onopen = () => {
               UI.setRoomMeta("Connected");
               startHeartbeat();
+              if (
+                shouldAutoRejoin &&
+                State.session.roomId &&
+                State.session.nickname
+              ) {
+                shouldAutoRejoin = false;
+                ReconnectFlow.start("재연결 시도 중...", "rejoin");
+                Actions.sendJoin(State.session.roomId, State.session.nickname);
+                return;
+              }
               if (ReconnectFlow.isPending()) {
                 if (ReconnectFlow.isRejoin() && State.session.roomId && State.session.nickname) {
                   UI.showReconnectStatus("재연결 중...");
@@ -1810,6 +2037,7 @@
           const enterRoom = (roomId, nickname) => {
             State.session.roomId = roomId;
             State.session.nickname = nickname;
+            Utils.setStoredSession(roomId, nickname);
             UI.enterRoomView(roomId, nickname);
           };
 
@@ -1819,6 +2047,7 @@
             }
             State.reconnect.pending = false;
             State.clearSession(keepUserId);
+            Utils.setStoredSession("", "");
             UI.exitRoomView();
           };
 
@@ -1912,18 +2141,20 @@
               if (entries.length) {
                 State.session.entries = entries;
               }
-              if (ReconnectFlow.isPending() && !Dom.chatView.classList.contains("hidden")) {
+              if (ReconnectFlow.isPending()) {
                 ReconnectFlow.finish();
                 UI.setReconnectTime("--:--");
                 UI.closeReconnectModal();
                 UI.setRoomMeta(`Connected as ${State.session.nickname}`);
                 UI.updateEntriesUI();
-                UI.appendSystemMessage("재연결되었습니다.");
-              } else {
-                JoinFlow.cancel();
-                Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
-                UI.updateEntriesUI();
+                if (!Dom.chatView.classList.contains("hidden")) {
+                  UI.appendSystemMessage("재연결되었습니다.");
+                  return;
+                }
               }
+              JoinFlow.cancel();
+              Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
+              UI.updateEntriesUI();
               return;
             }
 
@@ -2014,8 +2245,9 @@
             }
             if (payload) {
               const sender = payload.nickname || payload.userId || "user";
-              const isSelf =
-                payload.nickname && payload.nickname === State.session.nickname;
+              const isSelf = payload.userId
+                ? payload.userId === State.session.userId
+                : payload.nickname === State.session.nickname;
               UI.appendMessage(
                 payload.message || "",
                 sender,
@@ -2076,6 +2308,23 @@
 
         const Events = (() => {
           const bind = () => {
+            Viewport.bind();
+            const autoResizeChatInput = () => {
+              if (!Dom.chatInput) return;
+              Dom.chatInput.style.height = "auto";
+              const maxHeight = 140;
+              Dom.chatInput.style.height = `${Math.min(Dom.chatInput.scrollHeight, maxHeight)}px`;
+            };
+            const closeEntriesPanel = () => {
+              if (!Dom.entriesWrap || !Dom.entriesBtn) return;
+              Dom.entriesWrap.classList.remove("is-open");
+              Dom.entriesBtn.setAttribute("aria-expanded", "false");
+            };
+            const toggleEntriesPanel = () => {
+              if (!Dom.entriesWrap || !Dom.entriesBtn) return;
+              const isOpen = Dom.entriesWrap.classList.toggle("is-open");
+              Dom.entriesBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            };
             Dom.createRoomBtn.addEventListener("click", UI.openCreateModal);
             Dom.closeModalBtn.addEventListener("click", UI.closeCreateModal);
             Dom.cancelCreateBtn.addEventListener("click", UI.closeCreateModal);
@@ -2135,11 +2384,41 @@
               Dom.confirmJoinBtn.click();
             });
 
+            Dom.entriesBtn.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleEntriesPanel();
+            });
+            document.addEventListener("click", (event) => {
+              if (!Dom.entriesWrap) return;
+              if (Dom.entriesWrap.contains(event.target)) return;
+              closeEntriesPanel();
+            });
+
             Dom.backToHomeBtn.addEventListener("click", UI.openLeaveRoomModal);
             Dom.chatWindow.addEventListener("scroll", UI.updateScrollToBottomButton);
             Dom.scrollToBottomBtn.addEventListener("click", UI.scrollToBottom);
             Dom.copyRoomLinkBtn.addEventListener("click", UI.copyRoomLink);
             Dom.copyRoomIdBtn.addEventListener("click", UI.copyRoomId);
+            Dom.chatInput.addEventListener("input", autoResizeChatInput);
+            Dom.chatInput.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter") return;
+              if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+              if (event.ctrlKey || event.metaKey) {
+                const start = Dom.chatInput.selectionStart ?? Dom.chatInput.value.length;
+                const end = Dom.chatInput.selectionEnd ?? Dom.chatInput.value.length;
+                const value = Dom.chatInput.value;
+                Dom.chatInput.value = `${value.slice(0, start)}\n${value.slice(end)}`;
+                const cursor = start + 1;
+                Dom.chatInput.selectionStart = cursor;
+                Dom.chatInput.selectionEnd = cursor;
+                autoResizeChatInput();
+                event.preventDefault();
+                return;
+              }
+              event.preventDefault();
+              Dom.chatComposer.requestSubmit();
+            });
             Dom.closeJoinProgressBtn.addEventListener("click", () => {
               console.log("[join-flow] user cancel (close button)");
               if (JoinFlow.isPending()) {
@@ -2205,20 +2484,21 @@
 
             Dom.chatComposer.addEventListener("submit", (event) => {
               event.preventDefault();
-              const message = Dom.chatInput.value.trim();
-              if (!message) return;
+              const rawMessage = Dom.chatInput.value;
+              const trimmed = rawMessage.trim();
+              if (!trimmed) return;
               if (!State.session.roomId) {
                 UI.appendSystemMessage("방에 먼저 입장하세요.");
                 return;
               }
               const payload = {
                 roomId: State.session.roomId,
-                message,
+                message: rawMessage,
               };
               const requestId = WsClient.sendCommand("CLIENT_MESSAGE", payload);
               if (requestId) {
                 UI.appendMessage(
-                  message,
+                  rawMessage,
                   "you",
                   true,
                   Date.now(),
@@ -2226,8 +2506,11 @@
                 );
                 UI.scrollToBottom();
                 Dom.chatInput.value = "";
+                autoResizeChatInput();
+                Dom.chatInput.focus();
               }
             });
+            autoResizeChatInput();
 
             window.addEventListener("online", () => {
               if (!WsClient.connect) return;
@@ -2246,8 +2529,27 @@
           return { bind, autoOpenJoinModal };
         })();
 
+        const restoreSession = () => {
+          const roomId = Utils.getStoredRoomId();
+          const nickname = Utils.getStoredNickname();
+          if (roomId) {
+            State.session.roomId = roomId;
+          }
+          if (nickname) {
+            State.session.nickname = nickname;
+          }
+          return Boolean(roomId && nickname);
+        };
+
+        let shouldAutoRejoin = false;
+
         Events.bind();
-        Events.autoOpenJoinModal();
+        const hasStoredSession = restoreSession();
+        if (!hasStoredSession) {
+          Events.autoOpenJoinModal();
+        } else {
+          shouldAutoRejoin = true;
+        }
         WsClient.connect();
       })();
     </script>

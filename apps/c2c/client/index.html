@@ -516,6 +516,7 @@
         background: var(--panel);
         border: 1px solid var(--border);
         overflow-y: auto;
+        overflow-x: hidden;
         min-height: 0;
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -539,6 +540,8 @@
         margin-bottom: 0;
         display: inline-flex;
         flex-direction: column;
+        overflow-wrap: anywhere;
+        word-break: break-word;
         width: fit-content;
       }
 
