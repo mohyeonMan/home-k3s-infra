@@ -698,7 +698,17 @@
 
           <!-- Message composer -->
           <form class="composer" id="chatComposer" action="#" method="post">
-            <input type="text" id="chatInput" placeholder="Type a message..." />
+            <input
+              type="text"
+              id="chatInput"
+              placeholder="Type a message..."
+              enterkeyhint="send"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+            />
             <button class="btn primary" type="submit">Send</button>
           </form>
         </div>
