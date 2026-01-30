@@ -90,13 +90,15 @@
       }
 
       button,
-      input {
+      input,
+      textarea {
         font: inherit;
         color: inherit;
       }
 
       button:focus-visible,
-      input:focus-visible {
+      input:focus-visible,
+      textarea:focus-visible {
         outline: 2px solid var(--accent-2);
         outline-offset: 2px;
       }
@@ -211,7 +213,8 @@
         letter-spacing: 0.08em;
       }
 
-      input {
+      input,
+      textarea {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid var(--input-border);
@@ -227,6 +230,13 @@
       #joinNicknameInput,
       #joinRoomIdInput {
         font-size: 16px;
+      }
+
+      textarea {
+        resize: none;
+        min-height: 40px;
+        max-height: 140px;
+        overflow-y: auto;
       }
 
       .actions {
@@ -557,6 +567,7 @@
 
       .bubble p {
         margin: 0;
+        white-space: pre-wrap;
       }
 
       .bubble-time {
@@ -593,7 +604,7 @@
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 10px;
-        align-items: center;
+        align-items: end;
         margin-top: 0;
         flex: 0 0 auto;
         position: sticky;
@@ -602,10 +613,6 @@
         background: var(--paper-bg);
         border-top: none;
         width: 100%;
-      }
-
-      .composer:focus-within .btn.primary {
-        display: none;
       }
 
       .chat-shell {
@@ -702,17 +709,17 @@
 
           <!-- Message composer -->
           <form class="composer" id="chatComposer" action="#" method="post">
-            <input
-              type="text"
+            <textarea
               id="chatInput"
               placeholder="Type a message..."
-              enterkeyhint="send"
+              rows="1"
+              enterkeyhint="enter"
               inputmode="text"
               autocomplete="off"
               autocapitalize="off"
               autocorrect="off"
               spellcheck="false"
-            />
+            ></textarea>
             <button class="btn primary" type="submit">Send</button>
           </form>
         </div>
@@ -2245,6 +2252,12 @@
         const Events = (() => {
           const bind = () => {
             Viewport.bind();
+            const autoResizeChatInput = () => {
+              if (!Dom.chatInput) return;
+              Dom.chatInput.style.height = "auto";
+              const maxHeight = 140;
+              Dom.chatInput.style.height = `${Math.min(Dom.chatInput.scrollHeight, maxHeight)}px`;
+            };
             const closeEntriesPanel = () => {
               if (!Dom.entriesWrap || !Dom.entriesBtn) return;
               Dom.entriesWrap.classList.remove("is-open");
@@ -2330,6 +2343,7 @@
             Dom.scrollToBottomBtn.addEventListener("click", UI.scrollToBottom);
             Dom.copyRoomLinkBtn.addEventListener("click", UI.copyRoomLink);
             Dom.copyRoomIdBtn.addEventListener("click", UI.copyRoomId);
+            Dom.chatInput.addEventListener("input", autoResizeChatInput);
             Dom.closeJoinProgressBtn.addEventListener("click", () => {
               console.log("[join-flow] user cancel (close button)");
               if (JoinFlow.isPending()) {
@@ -2395,20 +2409,21 @@
 
             Dom.chatComposer.addEventListener("submit", (event) => {
               event.preventDefault();
-              const message = Dom.chatInput.value.trim();
-              if (!message) return;
+              const rawMessage = Dom.chatInput.value;
+              const trimmed = rawMessage.trim();
+              if (!trimmed) return;
               if (!State.session.roomId) {
                 UI.appendSystemMessage("방에 먼저 입장하세요.");
                 return;
               }
               const payload = {
                 roomId: State.session.roomId,
-                message,
+                message: rawMessage,
               };
               const requestId = WsClient.sendCommand("CLIENT_MESSAGE", payload);
               if (requestId) {
                 UI.appendMessage(
-                  message,
+                  rawMessage,
                   "you",
                   true,
                   Date.now(),
@@ -2416,8 +2431,11 @@
                 );
                 UI.scrollToBottom();
                 Dom.chatInput.value = "";
+                autoResizeChatInput();
+                Dom.chatInput.focus();
               }
             });
+            autoResizeChatInput();
 
             window.addEventListener("online", () => {
               if (!WsClient.connect) return;
