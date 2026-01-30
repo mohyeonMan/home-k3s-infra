@@ -1415,6 +1415,22 @@
             updateScrollToBottomButton();
           };
 
+          const extractErrorReason = (payload) => {
+            if (!payload) return "";
+            if (typeof payload === "string") {
+              try {
+                const parsed = JSON.parse(payload);
+                return parsed?.reason || "";
+              } catch (e) {
+                return "";
+              }
+            }
+            if (typeof payload === "object") {
+              return payload.reason || "";
+            }
+            return "";
+          };
+
           const updateEntriesUI = () => {
             if (!Dom.entriesWrap || !Dom.entriesBtn || !Dom.entriesList) {
               return;
@@ -1495,6 +1511,7 @@
             closeLeaveRoomModal,
             appendSystemMessage,
             appendMessage,
+            extractErrorReason,
             updateEntriesUI,
             enterRoomView,
             exitRoomView,
@@ -2067,6 +2084,33 @@
         })();
 
         const Handlers = (() => {
+          const handleResultError = (message, payload) => {
+            const reason = UI.extractErrorReason(message.payload || payload);
+            UI.openSystemModal(reason || "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            if (message.action === "ROOM_CREATE") {
+              UI.updateJoinProgress("방 생성 실패.");
+              UI.closeJoinProgress();
+              return;
+            }
+            if (message.action === "JOIN") {
+              UI.updateJoinProgress("참여 실패.");
+              if (ReconnectFlow.isPending()) {
+                ReconnectFlow.cancel();
+                State.clearSession(true);
+                UI.exitRoomView();
+                UI.openSystemModal("재입장에 실패하였습니다.");
+              } else {
+                JoinFlow.cancel();
+              }
+              return;
+            }
+            if (message.action === "JOIN_REQUEST") {
+              UI.updateJoinProgress("승인 요청 실패.");
+              JoinFlow.cancel();
+              return;
+            }
+          };
+
           const handleAck = (message) => {
             if (WsClient.handleHeartbeatAck(message)) {
               return;
@@ -2095,13 +2139,13 @@
 
           const handleResult = (message) => {
             const payload = Utils.parsePayload(message.payload);
+            if (message.status === "ERROR") {
+              console.log("[result] error", message);
+              handleResultError(message, payload);
+              return;
+            }
 
             if (message.action === "ROOM_CREATE") {
-              if (message.status === "ERROR") {
-                UI.updateJoinProgress("방 생성 실패.");
-                UI.closeJoinProgress();
-                return;
-              }
               const roomId = payload?.roomId;
               const ownerId = payload?.ownerId;
               const entries = Array.isArray(payload?.entries) ? payload.entries : [];
@@ -2121,19 +2165,6 @@
             }
 
             if (message.action === "JOIN") {
-              if (message.status === "ERROR") {
-                console.log("[join-flow] join result error", message);
-                UI.updateJoinProgress("참여 실패.");
-                if (ReconnectFlow.isPending()) {
-                  ReconnectFlow.cancel();
-                  State.clearSession(true);
-                  UI.exitRoomView();
-                  UI.openSystemModal("재입장에 실패하였습니다.");
-                } else {
-                  JoinFlow.cancel();
-                }
-                return;
-              }
               console.log("[join-flow] join result success", message);
               const roomId = payload?.roomId || State.join.roomId;
               const ownerId = payload?.ownerId;
@@ -2162,11 +2193,7 @@
             }
 
             if (message.action === "JOIN_REQUEST") {
-              if (message.status === "ERROR") {
-                console.log("[join-flow] join request error", message);
-                UI.updateJoinProgress("승인 요청 실패.");
-                JoinFlow.cancel();
-              }
+              return;
             }
           };
 
