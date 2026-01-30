@@ -241,6 +241,7 @@
 
       @media (hover: hover) and (pointer: fine) {
         textarea {
+          overflow-y: hidden;
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
@@ -2356,6 +2357,13 @@
             Dom.copyRoomLinkBtn.addEventListener("click", UI.copyRoomLink);
             Dom.copyRoomIdBtn.addEventListener("click", UI.copyRoomId);
             Dom.chatInput.addEventListener("input", autoResizeChatInput);
+            Dom.chatInput.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter") return;
+              if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+              if (event.ctrlKey || event.metaKey) return;
+              event.preventDefault();
+              Dom.chatComposer.requestSubmit();
+            });
             Dom.closeJoinProgressBtn.addEventListener("click", () => {
               console.log("[join-flow] user cancel (close button)");
               if (JoinFlow.isPending()) {
