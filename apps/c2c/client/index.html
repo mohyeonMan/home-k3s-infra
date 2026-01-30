@@ -2360,7 +2360,18 @@
             Dom.chatInput.addEventListener("keydown", (event) => {
               if (event.key !== "Enter") return;
               if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-              if (event.ctrlKey || event.metaKey) return;
+              if (event.ctrlKey || event.metaKey) {
+                const start = Dom.chatInput.selectionStart ?? Dom.chatInput.value.length;
+                const end = Dom.chatInput.selectionEnd ?? Dom.chatInput.value.length;
+                const value = Dom.chatInput.value;
+                Dom.chatInput.value = `${value.slice(0, start)}\n${value.slice(end)}`;
+                const cursor = start + 1;
+                Dom.chatInput.selectionStart = cursor;
+                Dom.chatInput.selectionEnd = cursor;
+                autoResizeChatInput();
+                event.preventDefault();
+                return;
+              }
               event.preventDefault();
               Dom.chatComposer.requestSubmit();
             });
