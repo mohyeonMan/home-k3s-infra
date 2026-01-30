@@ -535,10 +535,11 @@
 
       .system-message {
         align-self: stretch;
-        width: 100%;
-        max-width: 100%;
-        margin: 4px calc(-1 * var(--chat-padding));
-        padding: 2px 12px;
+        width: calc(100% + (2 * var(--chat-padding)));
+        margin: 4px 0;
+        margin-left: calc(-1 * var(--chat-padding));
+        margin-right: calc(-1 * var(--chat-padding));
+        padding: 1px 12px;
         font-size: 12px;
         color: var(--muted);
         text-align: center;
@@ -603,6 +604,9 @@
         width: 100%;
       }
 
+      body.keyboard-open .composer .btn.primary {
+        display: none;
+      }
 
       .chat-shell {
         flex: 1 1 auto;
@@ -1020,6 +1024,7 @@
           let lastTimeElSelf = null;
           let lastTimeLabelOther = "";
           let lastTimeElOther = null;
+          let lastMessageIsSelf = null;
           let lastSenderId = "";
           let lastSenderEl = null;
 
@@ -1295,6 +1300,7 @@
             lastTimeElSelf = null;
             lastTimeLabelOther = "";
             lastTimeElOther = null;
+            lastMessageIsSelf = null;
             lastSenderId = "";
             lastSenderEl = null;
             if (shouldStick) {
@@ -1328,10 +1334,10 @@
             Dom.chatWindow.appendChild(bubble);
             if (timeText) {
               const isSelfMsg = isSelf === true;
-              if (isSelfMsg && lastTimeElSelf) {
+              if (isSelfMsg && lastMessageIsSelf === true && lastTimeElSelf) {
                 lastTimeElSelf.remove();
               }
-              if (!isSelfMsg && lastTimeElOther) {
+              if (!isSelfMsg && lastMessageIsSelf === false && lastTimeElOther) {
                 lastTimeElOther.remove();
               }
               const time = document.createElement("div");
@@ -1345,6 +1351,7 @@
                 lastTimeLabelOther = timeText;
                 lastTimeElOther = time;
               }
+              lastMessageIsSelf = isSelfMsg;
             }
             if (shouldStick) {
               Dom.chatWindow.scrollTo({
@@ -1512,6 +1519,8 @@
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
             lastHeight = height;
+            const keyboardOpen = vv ? baseHeight - vv.height > 120 : false;
+            document.body.classList.toggle("keyboard-open", keyboardOpen);
             document.documentElement.style.setProperty(
               "--app-height",
               `${Math.round(height)}px`
@@ -2174,8 +2183,9 @@
             }
             if (payload) {
               const sender = payload.nickname || payload.userId || "user";
-              const isSelf =
-                payload.nickname && payload.nickname === State.session.nickname;
+              const isSelf = payload.userId
+                ? payload.userId === State.session.userId
+                : payload.nickname === State.session.nickname;
               UI.appendMessage(
                 payload.message || "",
                 sender,
