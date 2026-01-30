@@ -604,7 +604,8 @@
         width: 100%;
       }
 
-      body.keyboard-open .composer .btn.primary {
+      body.keyboard-open .composer .btn.primary,
+      .composer:focus-within .btn.primary {
         display: none;
       }
 
@@ -1546,6 +1547,7 @@
                 };
                 lockScroll();
                 setAppHeight();
+                document.body.classList.add("keyboard-open");
                 enforceScrollTop();
               }
             });
@@ -1555,6 +1557,7 @@
                 if (!isEditableTarget(active)) {
                   unlockScroll();
                   focusAnchor = null;
+                  document.body.classList.remove("keyboard-open");
                 }
               }, 0);
             });
