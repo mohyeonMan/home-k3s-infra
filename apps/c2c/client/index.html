@@ -239,6 +239,18 @@
         overflow-y: auto;
       }
 
+      @media (hover: hover) and (pointer: fine) {
+        textarea {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        textarea::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+        }
+      }
+
       .actions {
         display: grid;
         grid-template-columns: 1fr;
