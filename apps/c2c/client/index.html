@@ -10,7 +10,6 @@
     <style>
       :root {
         --app-height: 100dvh;
-        --keyboard-height: 0px;
         --bg: #f5efe6;
         --bg-2: #efe6d7;
         --card: #f7f1e8;
@@ -536,7 +535,6 @@
         gap: 0;
         --chat-padding: 14px;
         padding: var(--chat-padding);
-        padding-bottom: calc(var(--chat-padding) + var(--keyboard-height, 0px));
         border-radius: 16px;
         background: var(--panel);
         border: 1px solid var(--border);
@@ -546,7 +544,6 @@
         scrollbar-width: none;
         -ms-overflow-style: none;
         width: 100%;
-        scroll-padding-bottom: calc(var(--chat-padding) + var(--keyboard-height, 0px));
       }
 
       .chat-window::-webkit-scrollbar {
@@ -1926,14 +1923,11 @@
 
         const Viewport = (() => {
           let lastHeight = 0;
-          let lastKeyboardDelta = 0;
-          let lastKeyboardHeight = 0;
           let scrollLocked = false;
           let scrollTop = 0;
           let scrollEnforceTimer = null;
           let focusAnchor = null;
-          let chatScrollTimeout = null;
-          let lastCommittedKeyboardDelta = 0;
+          let preserveScrollRaf = null;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1989,13 +1983,15 @@
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
-            let keyboardDelta = 0;
-            let keyboardHeight = 0;
+            let prevDistanceFromBottom = 0;
+            if (Dom.chatWindow) {
+              prevDistanceFromBottom =
+                Dom.chatWindow.scrollHeight -
+                Dom.chatWindow.scrollTop -
+                Dom.chatWindow.clientHeight;
+            }
             if (vv) {
               height = vv.height;
-              const offsetTop = vv.offsetTop || 0;
-              keyboardHeight = Math.max(0, baseHeight - vv.height - offsetTop);
-              keyboardDelta = keyboardHeight;
             }
             if (!height) return;
             if (Math.abs(height - lastHeight) >= 1) {
@@ -2005,32 +2001,19 @@
                 `${Math.round(height)}px`
               );
             }
-            if (Math.abs(keyboardHeight - lastKeyboardHeight) >= 1) {
-              lastKeyboardHeight = keyboardHeight;
-              document.documentElement.style.setProperty(
-                "--keyboard-height",
-                `${Math.round(keyboardHeight)}px`
-              );
-            }
-            if (vv && Dom.chatWindow) {
-              if (chatScrollTimeout) clearTimeout(chatScrollTimeout);
-              chatScrollTimeout = setTimeout(() => {
-                const deltaChange = keyboardDelta - lastCommittedKeyboardDelta;
+            if (Dom.chatWindow) {
+              if (preserveScrollRaf) cancelAnimationFrame(preserveScrollRaf);
+              preserveScrollRaf = requestAnimationFrame(() => {
                 if (!Dom.chatWindow) return;
-                if (Math.abs(deltaChange) <= 1) return;
-                const maxScrollTop =
-                  Dom.chatWindow.scrollHeight - Dom.chatWindow.clientHeight;
-                const nextScrollTop = Math.min(
-                  maxScrollTop,
-                  Math.max(0, Dom.chatWindow.scrollTop + deltaChange)
+                const nextScrollTop = Math.max(
+                  0,
+                  Dom.chatWindow.scrollHeight -
+                    Dom.chatWindow.clientHeight -
+                    prevDistanceFromBottom
                 );
-                Dom.chatWindow.scrollTo({
-                  top: nextScrollTop,
-                  behavior: "smooth",
-                });
-                lastCommittedKeyboardDelta = keyboardDelta;
-              }, 1000);
-              lastKeyboardDelta = keyboardDelta;
+                Dom.chatWindow.scrollTop = nextScrollTop;
+                preserveScrollRaf = null;
+              });
             }
           };
 
