@@ -2597,6 +2597,7 @@
 
             if (message.action === "ONLINE") {
               if (payload.userId) {
+                UI.appendSystemMessage(`${payload.nickname || payload.userId} online.`);
                 const entries = Array.isArray(State.session.entries)
                   ? State.session.entries
                   : [];
@@ -2620,6 +2621,7 @@
 
             if (message.action === "OFFLINE") {
               if (payload.userId) {
+                UI.appendSystemMessage(`${payload.nickname || payload.userId} offline.`);
                 const entries = Array.isArray(State.session.entries)
                   ? State.session.entries
                   : [];
