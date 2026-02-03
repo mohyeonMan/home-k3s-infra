@@ -2,10 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
     <title>C2C Client</title>
     <style>
       :root {
+        --app-height: 100dvh;
+        --keyboard-height: 0px;
         --bg: #f5efe6;
         --bg-2: #efe6d7;
         --card: #f7f1e8;
@@ -531,6 +536,7 @@
         gap: 0;
         --chat-padding: 14px;
         padding: var(--chat-padding);
+        padding-bottom: calc(var(--chat-padding) + var(--keyboard-height, 0px));
         border-radius: 16px;
         background: var(--panel);
         border: 1px solid var(--border);
@@ -540,6 +546,7 @@
         scrollbar-width: none;
         -ms-overflow-style: none;
         width: 100%;
+        scroll-padding-bottom: calc(var(--chat-padding) + var(--keyboard-height, 0px));
       }
 
       .chat-window::-webkit-scrollbar {
@@ -1920,6 +1927,7 @@
         const Viewport = (() => {
           let lastHeight = 0;
           let lastKeyboardDelta = 0;
+          let lastKeyboardHeight = 0;
           let scrollLocked = false;
           let scrollTop = 0;
           let scrollEnforceTimer = null;
@@ -1982,19 +1990,28 @@
             const vv = window.visualViewport;
             let height = baseHeight;
             let keyboardDelta = 0;
+            let keyboardHeight = 0;
             if (vv) {
-              const delta = baseHeight - vv.height;
-              if (delta > 120) {
-                height = vv.height;
-                keyboardDelta = delta;
-              }
+              height = vv.height;
+              const offsetTop = vv.offsetTop || 0;
+              keyboardHeight = Math.max(0, baseHeight - vv.height - offsetTop);
+              keyboardDelta = keyboardHeight;
             }
-            if (!height || Math.abs(height - lastHeight) < 1) return;
-            lastHeight = height;
-            document.documentElement.style.setProperty(
-              "--app-height",
-              `${Math.round(height)}px`
-            );
+            if (!height) return;
+            if (Math.abs(height - lastHeight) >= 1) {
+              lastHeight = height;
+              document.documentElement.style.setProperty(
+                "--app-height",
+                `${Math.round(height)}px`
+              );
+            }
+            if (Math.abs(keyboardHeight - lastKeyboardHeight) >= 1) {
+              lastKeyboardHeight = keyboardHeight;
+              document.documentElement.style.setProperty(
+                "--keyboard-height",
+                `${Math.round(keyboardHeight)}px`
+              );
+            }
             if (vv && Dom.chatWindow) {
               const deltaChange = keyboardDelta - lastKeyboardDelta;
               if (Math.abs(deltaChange) >= 1) {
