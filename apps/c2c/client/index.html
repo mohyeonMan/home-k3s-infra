@@ -2968,14 +2968,19 @@
 
             Dom.backToHomeBtn.addEventListener("click", UI.openLeaveRoomModal);
             Dom.chatWindow.addEventListener("scroll", UI.updateScrollToBottomButton);
+            let keepChatInputFocus = false;
             Dom.scrollToBottomBtn.addEventListener("mousedown", (event) => {
-              event.preventDefault();
+              keepChatInputFocus = document.activeElement === Dom.chatInput;
+              if (keepChatInputFocus) {
+                event.preventDefault();
+              }
             });
-            Dom.scrollToBottomBtn.addEventListener("touchstart", (event) => {
-              event.preventDefault();
+            Dom.scrollToBottomBtn.addEventListener("touchstart", () => {
+              keepChatInputFocus = document.activeElement === Dom.chatInput;
             });
             Dom.scrollToBottomBtn.addEventListener("click", () => {
-              const wasFocused = document.activeElement === Dom.chatInput;
+              const wasFocused = keepChatInputFocus;
+              keepChatInputFocus = false;
               UI.scrollToBottom();
               if (wasFocused) {
                 Dom.chatInput.focus({ preventScroll: true });
