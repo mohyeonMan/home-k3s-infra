@@ -1932,8 +1932,8 @@
           let scrollTop = 0;
           let scrollEnforceTimer = null;
           let focusAnchor = null;
-          let chatScrollRaf = null;
           let chatScrollTimeout = null;
+          let pendingKeyboardDelta = 0;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -2014,20 +2014,20 @@
             }
             if (vv && Dom.chatWindow) {
               const deltaChange = keyboardDelta - lastKeyboardDelta;
-              if (Math.abs(deltaChange) >= 1) {
-                if (chatScrollRaf) cancelAnimationFrame(chatScrollRaf);
+              if (deltaChange > 1) {
                 if (chatScrollTimeout) clearTimeout(chatScrollTimeout);
+                pendingKeyboardDelta = keyboardDelta;
                 const applyScroll = () => {
                   if (!Dom.chatWindow) return;
+                  if (pendingKeyboardDelta !== lastKeyboardDelta) return;
                   Dom.chatWindow.scrollBy({
-                    top: deltaChange,
+                    top: pendingKeyboardDelta,
                     behavior: "smooth",
                   });
                 };
-                chatScrollRaf = requestAnimationFrame(applyScroll);
-                chatScrollTimeout = setTimeout(applyScroll, 350);
-                lastKeyboardDelta = keyboardDelta;
+                chatScrollTimeout = setTimeout(applyScroll, 400);
               }
+              lastKeyboardDelta = keyboardDelta;
             }
           };
 
