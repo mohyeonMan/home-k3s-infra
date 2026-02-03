@@ -592,6 +592,31 @@
         border-radius: 0;
       }
 
+      .history-divider {
+        align-self: stretch;
+        width: calc(100% + (2 * var(--chat-padding)));
+        margin: 10px 0;
+        margin-left: calc(-1 * var(--chat-padding));
+        margin-right: calc(-1 * var(--chat-padding));
+        padding: 8px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-card);
+        position: relative;
+      }
+
+      .history-divider::before {
+        content: "";
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 50%;
+        height: 1px;
+        background: var(--border);
+        transform: translateY(-50%);
+      }
+
       .meta {
         font-size: 11px;
         color: var(--meta);
@@ -1578,7 +1603,7 @@
             }, durationMs);
           };
 
-          const appendSystemMessage = (text) => {
+          const appendSystemMessage = (text, options = {}) => {
             const shouldStick = isNearBottom();
             const notice = document.createElement("div");
             notice.className = "system-message";
@@ -1598,6 +1623,14 @@
               });
             }
             updateScrollToBottomButton();
+            const shouldPersist = options.persist !== false;
+            if (shouldPersist && State.session.roomId) {
+              Utils.addRoomMessage(State.session.roomId, {
+                type: "system",
+                text,
+                sentAt: Date.now(),
+              });
+            }
           };
 
           const appendMessage = (text, sender, isSelf, sentAt, senderId, options = {}) => {
@@ -1651,6 +1684,7 @@
             const shouldPersist = options.persist !== false;
             if (shouldPersist && State.session.roomId) {
               Utils.addRoomMessage(State.session.roomId, {
+                type: "message",
                 text,
                 sender,
                 isSelf: Boolean(isSelf),
@@ -1658,6 +1692,13 @@
                 senderId: senderId || "",
               });
             }
+          };
+
+          const appendHistoryDivider = () => {
+            const divider = document.createElement("div");
+            divider.className = "history-divider";
+            Dom.chatWindow.appendChild(divider);
+            updateScrollToBottomButton();
           };
 
           const extractErrorReason = (payload) => {
@@ -1788,6 +1829,10 @@
             Dom.chatWindow.innerHTML = "";
             const storedMessages = Utils.getRoomMessages(roomId);
             storedMessages.forEach((message) => {
+              if (message?.type === "system") {
+                UI.appendSystemMessage(message.text || "", { persist: false });
+                return;
+              }
               UI.appendMessage(
                 message.text || "",
                 message.sender || "",
@@ -1797,6 +1842,9 @@
                 { persist: false }
               );
             });
+            if (storedMessages.length) {
+              appendHistoryDivider();
+            }
             Dom.homeView.classList.add("hidden");
             Dom.chatView.classList.remove("hidden");
             updateEntriesUI();
