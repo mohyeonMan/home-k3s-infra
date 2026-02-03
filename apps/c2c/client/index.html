@@ -487,6 +487,25 @@
         border: 1px solid var(--entries-owner-border);
       }
 
+      .entries-item .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #b09b8f;
+        flex: 0 0 auto;
+        margin-right: 6px;
+      }
+
+      .entries-item.is-online .status-dot {
+        background: #3b8c59;
+      }
+
+      .entries-item .name {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
       .owner-badge {
         font-size: 10px;
         padding: 2px 6px;
@@ -666,6 +685,12 @@
             <p class="muted">Create or join a room to start chatting.</p>
           </div>
         </header>
+
+        <section class="card" id="roomListCard">
+          <h2>My Rooms</h2>
+          <p class="muted" id="roomListEmpty">No joined rooms yet.</p>
+          <ul class="list" id="roomList"></ul>
+        </section>
 
         <section class="card">
           <h2>Room Actions</h2>
@@ -854,6 +879,7 @@
         </p>
         <div class="actions">
           <button class="btn primary" id="confirmLeaveBtn">나가기</button>
+          <button class="btn" id="confirmLeaveMembershipBtn">멤버 탈퇴</button>
           <button class="btn" id="cancelLeaveBtn">취소</button>
         </div>
       </div>
@@ -883,6 +909,9 @@
             createRoomBtn: byId("createRoomBtn"),
             homeView: byId("homeView"),
             chatView: byId("chatView"),
+            roomListCard: byId("roomListCard"),
+            roomList: byId("roomList"),
+            roomListEmpty: byId("roomListEmpty"),
             roomTitle: byId("roomTitle"),
             roomMeta: byId("roomMeta"),
             roomIdText: byId("roomIdText"),
@@ -928,6 +957,7 @@
             leaveRoomModal: byId("leaveRoomModal"),
             closeLeaveModalBtn: byId("closeLeaveModalBtn"),
             confirmLeaveBtn: byId("confirmLeaveBtn"),
+            confirmLeaveMembershipBtn: byId("confirmLeaveMembershipBtn"),
             cancelLeaveBtn: byId("cancelLeaveBtn"),
             closeSystemModalBtn: byId("closeSystemModalBtn"),
             confirmSystemModalBtn: byId("confirmSystemModalBtn"),
@@ -952,8 +982,10 @@
             nickname: "",
             userId: "",
             ownerId: "",
+            autoDeleteAt: null,
             entries: [],
           },
+          roomList: [],
           reconnect: {
             pending: false,
             mode: "none",
@@ -983,6 +1015,7 @@
               nickname: "",
               userId,
               ownerId: "",
+              autoDeleteAt: null,
               entries: [],
             };
             this.reconnect.pending = false;
@@ -1010,27 +1043,59 @@
             const mm = String(date.getMinutes()).padStart(2, "0");
             return `${hh}:${mm}`;
           },
+          formatDateTime(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            const yy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            const hh = String(date.getHours()).padStart(2, "0");
+            const min = String(date.getMinutes()).padStart(2, "0");
+            return `${yy}-${mm}-${dd} ${hh}:${min}`;
+          },
           getQueryParam(key) {
             const params = new URLSearchParams(window.location.search);
             return params.get(key);
           },
           getStoredUserId() {
             try {
-              return sessionStorage.getItem("c2cUserId") || "";
+              const stored = localStorage.getItem("c2cUserId") || "";
+              if (stored) return stored;
+              const legacy = sessionStorage.getItem("c2cUserId") || "";
+              if (legacy) {
+                localStorage.setItem("c2cUserId", legacy);
+                return legacy;
+              }
+              return "";
             } catch (e) {
               return "";
             }
           },
           getStoredRoomId() {
             try {
-              return sessionStorage.getItem("c2cRoomId") || "";
+              const stored = localStorage.getItem("c2cRoomId") || "";
+              if (stored) return stored;
+              const legacy = sessionStorage.getItem("c2cRoomId") || "";
+              if (legacy) {
+                localStorage.setItem("c2cRoomId", legacy);
+                return legacy;
+              }
+              return "";
             } catch (e) {
               return "";
             }
           },
           getStoredNickname() {
             try {
-              return sessionStorage.getItem("c2cNickname") || "";
+              const stored = localStorage.getItem("c2cNickname") || "";
+              if (stored) return stored;
+              const legacy = sessionStorage.getItem("c2cNickname") || "";
+              if (legacy) {
+                localStorage.setItem("c2cNickname", legacy);
+                return legacy;
+              }
+              return "";
             } catch (e) {
               return "";
             }
@@ -1038,7 +1103,7 @@
           setStoredUserId(userId) {
             if (!userId) return;
             try {
-              sessionStorage.setItem("c2cUserId", userId);
+              localStorage.setItem("c2cUserId", userId);
             } catch (e) {
               return;
             }
@@ -1046,14 +1111,14 @@
           setStoredSession(roomId, nickname) {
             try {
               if (roomId) {
-                sessionStorage.setItem("c2cRoomId", roomId);
+                localStorage.setItem("c2cRoomId", roomId);
               } else {
-                sessionStorage.removeItem("c2cRoomId");
+                localStorage.removeItem("c2cRoomId");
               }
               if (nickname) {
-                sessionStorage.setItem("c2cNickname", nickname);
+                localStorage.setItem("c2cNickname", nickname);
               } else {
-                sessionStorage.removeItem("c2cNickname");
+                localStorage.removeItem("c2cNickname");
               }
             } catch (e) {
               return;
@@ -1065,6 +1130,137 @@
             return `${baseUrl}${separator}userId=${encodeURIComponent(userId)}`;
           },
         };
+
+        const TabLock = (() => {
+          const LOCK_TAB_KEY = "c2cActiveTabId";
+          const LOCK_AT_KEY = "c2cActiveAt";
+          const TAB_ID_KEY = "c2cTabId";
+          const LEASE_TTL_MS = 10000;
+          const LEASE_RENEW_MS = 5000;
+          let renewTimer = null;
+          let onLost = null;
+
+          const now = () => Date.now();
+
+          const readLock = () => {
+            let activeAt = 0;
+            try {
+              activeAt = Number(localStorage.getItem(LOCK_AT_KEY) || "0");
+            } catch (e) {
+              activeAt = 0;
+            }
+            let tabId = "";
+            try {
+              tabId = localStorage.getItem(LOCK_TAB_KEY) || "";
+            } catch (e) {
+              tabId = "";
+            }
+            return { tabId, activeAt };
+          };
+
+          const isExpired = (activeAt) => {
+            if (!activeAt) return true;
+            return now() - activeAt > LEASE_TTL_MS;
+          };
+
+          const ensureTabId = () => {
+            try {
+              let tabId = sessionStorage.getItem(TAB_ID_KEY);
+              if (!tabId) {
+                tabId = `tab-${Math.random().toString(36).slice(2, 8)}-${Date.now()}`;
+                sessionStorage.setItem(TAB_ID_KEY, tabId);
+              }
+              return tabId;
+            } catch (e) {
+              return `tab-${Math.random().toString(36).slice(2, 8)}-${Date.now()}`;
+            }
+          };
+
+          const isOwner = () => {
+            const tabId = ensureTabId();
+            const lock = readLock();
+            return lock.tabId === tabId && !isExpired(lock.activeAt);
+          };
+
+          const renew = () => {
+            const tabId = ensureTabId();
+            const lock = readLock();
+            if (lock.tabId !== tabId) return;
+            try {
+              localStorage.setItem(LOCK_AT_KEY, String(now()));
+            } catch (e) {
+              return;
+            }
+          };
+
+          const startRenew = () => {
+            stopRenew();
+            renewTimer = setInterval(renew, LEASE_RENEW_MS);
+          };
+
+          const stopRenew = () => {
+            if (renewTimer) {
+              clearInterval(renewTimer);
+              renewTimer = null;
+            }
+          };
+
+          const acquire = () => {
+            const tabId = ensureTabId();
+            const lock = readLock();
+            if (!lock.tabId || lock.tabId === tabId || isExpired(lock.activeAt)) {
+              try {
+                localStorage.setItem(LOCK_TAB_KEY, tabId);
+                localStorage.setItem(LOCK_AT_KEY, String(now()));
+              } catch (e) {
+                return false;
+              }
+              startRenew();
+              return true;
+            }
+            return false;
+          };
+
+          const release = () => {
+            const tabId = ensureTabId();
+            const lock = readLock();
+            if (lock.tabId !== tabId) return;
+            try {
+              localStorage.removeItem(LOCK_TAB_KEY);
+              localStorage.removeItem(LOCK_AT_KEY);
+            } catch (e) {
+              return;
+            } finally {
+              stopRenew();
+            }
+          };
+
+          const handleStorage = (event) => {
+            if (event.key !== LOCK_TAB_KEY && event.key !== LOCK_AT_KEY) {
+              return;
+            }
+            const lock = readLock();
+            const tabId = ensureTabId();
+            if (lock.tabId && lock.tabId !== tabId && !isExpired(lock.activeAt)) {
+              if (onLost) {
+                onLost(lock.tabId);
+              }
+            }
+          };
+
+          const setOnLost = (handler) => {
+            onLost = handler;
+          };
+
+          return {
+            acquire,
+            release,
+            ensureTabId,
+            isOwner,
+            setOnLost,
+            handleStorage,
+          };
+        })();
 
         const UI = (() => {
           const SCROLL_THRESHOLD_PX = 24;
@@ -1129,6 +1325,19 @@
 
           const setRoomMeta = (text) => {
             Dom.roomMeta.textContent = text;
+          };
+
+          const refreshRoomMeta = () => {
+            const base =
+              State.session.nickname && State.session.roomId
+                ? `Connected as ${State.session.nickname}`
+                : Dom.roomMeta.textContent || "Connected";
+            const autoDeleteAt = Utils.formatDateTime(State.session.autoDeleteAt);
+            if (autoDeleteAt) {
+              Dom.roomMeta.textContent = `${base} · Auto delete ${autoDeleteAt}`;
+              return;
+            }
+            Dom.roomMeta.textContent = base;
           };
 
           const getOwnerNickname = () => {
@@ -1435,8 +1644,10 @@
             if (!Dom.entriesWrap || !Dom.entriesBtn || !Dom.entriesList) {
               return;
             }
-            const count = State.session.entries.length;
-            Dom.entriesBtn.textContent = `Entries (${count})`;
+            const entries = Array.isArray(State.session.entries) ? State.session.entries : [];
+            const count = entries.length;
+            const onlineCount = entries.filter((entry) => entry?.online).length;
+            Dom.entriesBtn.textContent = `Entries (${onlineCount}/${count})`;
             Dom.entriesList.innerHTML = "";
             if (!count) {
               const empty = document.createElement("li");
@@ -1445,19 +1656,31 @@
               Dom.entriesList.appendChild(empty);
               return;
             }
-            State.session.entries.forEach((entry) => {
+            entries.forEach((entry) => {
               const item = document.createElement("li");
               item.className = "entries-item";
               const isOwner = State.session.ownerId && entry.userId === State.session.ownerId;
               const isSelf = State.session.userId && entry.userId === State.session.userId;
+              const isOnline = entry.online === true;
               if (isOwner) {
                 item.classList.add("is-owner");
               }
               if (isSelf) {
                 item.classList.add("is-self");
               }
+              if (isOnline) {
+                item.classList.add("is-online");
+              }
               const name = entry.nickname || entry.userId || "user";
-              item.textContent = name;
+              const nameWrap = document.createElement("span");
+              nameWrap.className = "name";
+              const dot = document.createElement("span");
+              dot.className = "status-dot";
+              nameWrap.appendChild(dot);
+              const nameText = document.createElement("span");
+              nameText.textContent = name;
+              nameWrap.appendChild(nameText);
+              item.appendChild(nameWrap);
               if (isOwner) {
                 const badge = document.createElement("span");
                 badge.className = "owner-badge";
@@ -1467,6 +1690,61 @@
               Dom.entriesList.appendChild(item);
             });
             updateRoomTitle();
+            refreshRoomMeta();
+          };
+
+          const getNicknameFromEntries = (entries, userId) => {
+            if (!userId || !Array.isArray(entries)) return "";
+            const match = entries.find((entry) => entry?.userId === userId);
+            if (match && match.nickname) return match.nickname;
+            return "";
+          };
+
+          const getOwnerNicknameFromEntries = (entries, ownerId) => {
+            if (!ownerId || !Array.isArray(entries)) return "";
+            const match = entries.find((entry) => entry?.userId === ownerId);
+            if (match && match.nickname) return match.nickname;
+            return "";
+          };
+
+          const updateRoomListUI = (rooms) => {
+            if (!Dom.roomList || !Dom.roomListEmpty) return;
+            Dom.roomList.innerHTML = "";
+            const list = Array.isArray(rooms) ? rooms : [];
+            if (!list.length) {
+              Dom.roomListEmpty.classList.remove("hidden");
+              return;
+            }
+            Dom.roomListEmpty.classList.add("hidden");
+            list.forEach((room) => {
+              const item = document.createElement("li");
+              const ownerName = getOwnerNicknameFromEntries(room?.entries, room?.ownerId);
+              const title = ownerName ? `${ownerName}님의 방` : room?.roomId || "Room";
+
+              const label = document.createElement("span");
+              label.textContent = title;
+
+              const enterBtn = document.createElement("button");
+              enterBtn.className = "btn tiny-btn";
+              enterBtn.type = "button";
+              enterBtn.textContent = "입장";
+              enterBtn.addEventListener("click", () => {
+                const roomId = room?.roomId;
+                if (!roomId) return;
+                const nickname =
+                  getNicknameFromEntries(room?.entries, State.session.userId) ||
+                  State.session.nickname ||
+                  Utils.getStoredNickname();
+                State.session.roomId = roomId;
+                State.session.nickname = nickname;
+                Utils.setStoredSession(roomId, nickname || "");
+                Actions.sendOnline(roomId);
+              });
+
+              item.appendChild(label);
+              item.appendChild(enterBtn);
+              Dom.roomList.appendChild(item);
+            });
           };
 
           const enterRoomView = (roomId, nickname) => {
@@ -1483,10 +1761,12 @@
             Dom.chatInput.value = "";
             Dom.chatView.classList.add("hidden");
             Dom.homeView.classList.remove("hidden");
+            Actions.sendRoomList();
           };
 
           return {
             setRoomMeta,
+            refreshRoomMeta,
             openCreateModal,
             closeCreateModal,
             openJoinModal,
@@ -1513,6 +1793,7 @@
             appendMessage,
             extractErrorReason,
             updateEntriesUI,
+            updateRoomListUI,
             enterRoomView,
             exitRoomView,
             scrollToBottom,
@@ -1943,6 +2224,11 @@
             if (isOpen()) {
               return;
             }
+            if (!TabLock.isOwner() && !TabLock.acquire()) {
+              State.reconnect.blocked = true;
+              UI.openSystemModal("다른 탭에서 사용 중입니다. 이 탭에서는 연결할 수 없습니다.");
+              return;
+            }
             const storedUserId = Utils.getStoredUserId();
             const wsUrl = Utils.buildWsUrl(
               Config.wsBaseUrl,
@@ -1952,22 +2238,12 @@
             socket.onopen = () => {
               UI.setRoomMeta("Connected");
               startHeartbeat();
-              if (
-                shouldAutoRejoin &&
-                State.session.roomId &&
-                State.session.nickname
-              ) {
-                shouldAutoRejoin = false;
-                ReconnectFlow.start("재연결 시도 중...", "rejoin");
-                Actions.sendJoin(State.session.roomId, State.session.nickname);
+            if (ReconnectFlow.isPending()) {
+              if (ReconnectFlow.isRejoin() && State.session.roomId && State.session.nickname) {
+                UI.showReconnectStatus("재연결 중...");
+                Actions.sendOnline(State.session.roomId);
                 return;
               }
-              if (ReconnectFlow.isPending()) {
-                if (ReconnectFlow.isRejoin() && State.session.roomId && State.session.nickname) {
-                  UI.showReconnectStatus("재연결 중...");
-                  Actions.sendJoin(State.session.roomId, State.session.nickname);
-                  return;
-                }
                 ReconnectFlow.finish();
                 UI.setReconnectTime("--:--");
                 UI.closeReconnectModal();
@@ -1996,6 +2272,12 @@
           };
         })();
 
+        TabLock.setOnLost(() => {
+          State.reconnect.blocked = true;
+          WsClient.stopReconnect();
+          UI.openSystemModal("다른 탭에서 이미 사용 중입니다. 이 탭은 연결이 중단됩니다.");
+        });
+
         const Actions = (() => {
           const sendJoinRequest = async () => {
             const requestId = WsClient.sendCommand("JOIN_REQUEST", {
@@ -2017,6 +2299,25 @@
               State.join.nickname = nickname;
               State.join.joinRequestId = requestId;
             }
+          };
+
+          const sendOnline = async (roomId) => {
+            if (!roomId) return;
+            WsClient.sendCommand("ONLINE", { roomId });
+          };
+
+          const sendOffline = async (roomId) => {
+            if (!roomId) return;
+            WsClient.sendCommand("OFFLINE", { roomId });
+          };
+
+          const sendLeave = async (roomId) => {
+            if (!roomId) return;
+            WsClient.sendCommand("LEAVE", { roomId });
+          };
+
+          const sendRoomList = async () => {
+            WsClient.sendCommand("ROOM_LIST", {});
           };
 
           const sendJoinApprove = async (roomId, requestedUserId, approved) => {
@@ -2063,7 +2364,17 @@
 
           const exitRoom = (keepUserId = true) => {
             if (State.session.roomId) {
-              WsClient.sendCommand("LEAVE", { roomId: State.session.roomId });
+              Actions.sendOffline(State.session.roomId);
+            }
+            State.reconnect.pending = false;
+            State.clearSession(keepUserId);
+            Utils.setStoredSession("", "");
+            UI.exitRoomView();
+          };
+
+          const leaveMembership = (keepUserId = true) => {
+            if (State.session.roomId) {
+              Actions.sendLeave(State.session.roomId);
             }
             State.reconnect.pending = false;
             State.clearSession(keepUserId);
@@ -2074,12 +2385,17 @@
           return {
             sendJoinRequest,
             sendJoin,
+            sendOnline,
+            sendOffline,
+            sendLeave,
+            sendRoomList,
             sendJoinApprove,
             sendRoomCreate,
             runJoinFlow,
             runCreateFlow,
             enterRoom,
             exitRoom,
+            leaveMembership,
           };
         })();
 
@@ -2107,6 +2423,13 @@
             if (message.action === "JOIN_REQUEST") {
               UI.updateJoinProgress("승인 요청 실패.");
               JoinFlow.cancel();
+              return;
+            }
+            if (message.action === "ONLINE") {
+              State.clearSession(true);
+              Utils.setStoredSession("", "");
+              UI.exitRoomView();
+              UI.openSystemModal("방 접속 상태를 갱신하지 못했습니다. 다시 입장해 주세요.");
               return;
             }
           };
@@ -2147,34 +2470,51 @@
 
             if (message.action === "ROOM_CREATE") {
               const roomId = payload?.roomId;
-              const ownerId = payload?.ownerId;
-              const entries = Array.isArray(payload?.entries) ? payload.entries : [];
               if (roomId) {
                 State.create.roomId = roomId;
               }
-              if (ownerId) {
-                State.session.ownerId = ownerId;
-              }
-              if (entries.length) {
-                State.session.entries = entries;
-              }
               UI.closeJoinProgress();
-              Actions.enterRoom(roomId, State.create.nickname);
-              UI.updateEntriesUI();
+              State.session.roomId = roomId;
+              State.session.nickname = State.create.nickname;
+              Utils.setStoredSession(roomId, State.create.nickname);
+              Actions.sendOnline(roomId);
               return;
             }
 
             if (message.action === "JOIN") {
               console.log("[join-flow] join result success", message);
               const roomId = payload?.roomId || State.join.roomId;
-              const ownerId = payload?.ownerId;
+              JoinFlow.cancel();
+              State.session.roomId = roomId;
+              State.session.nickname = State.join.nickname || State.create.nickname;
+              Utils.setStoredSession(roomId, State.session.nickname);
+              Actions.sendOnline(roomId);
+              return;
+            }
+
+            if (message.action === "JOIN_REQUEST") {
+              return;
+            }
+
+            if (message.action === "ONLINE") {
+              const roomId = payload?.roomId || State.session.roomId;
+              if (!roomId) {
+                return;
+              }
+              State.session.roomId = roomId;
+              if (payload?.ownerId) {
+                State.session.ownerId = payload.ownerId;
+              }
+              if (payload?.autoDeleteAt) {
+                State.session.autoDeleteAt = payload.autoDeleteAt;
+              }
               const entries = Array.isArray(payload?.entries) ? payload.entries : [];
-              if (ownerId) {
-                State.session.ownerId = ownerId;
-              }
-              if (entries.length) {
-                State.session.entries = entries;
-              }
+              State.session.entries = entries.map((entry) => ({
+                ...entry,
+                online: entry?.online === true,
+              }));
+              Actions.enterRoom(roomId, State.session.nickname);
+              UI.updateEntriesUI();
               if (ReconnectFlow.isPending()) {
                 ReconnectFlow.finish();
                 UI.setReconnectTime("--:--");
@@ -2183,16 +2523,35 @@
                 UI.updateEntriesUI();
                 if (!Dom.chatView.classList.contains("hidden")) {
                   UI.appendSystemMessage("재연결되었습니다.");
-                  return;
                 }
               }
-              JoinFlow.cancel();
-              Actions.enterRoom(roomId, State.join.nickname || State.create.nickname);
-              UI.updateEntriesUI();
               return;
             }
 
-            if (message.action === "JOIN_REQUEST") {
+            if (message.action === "ROOM_LIST") {
+              const rooms = Array.isArray(payload?.rooms) ? payload.rooms : [];
+              State.roomList = rooms;
+              UI.updateRoomListUI(rooms);
+              const current = rooms.find(
+                (room) => room?.roomId && room.roomId === State.session.roomId
+              );
+              if (current) {
+                if (current?.ownerId) {
+                  State.session.ownerId = current.ownerId;
+                }
+                if (current?.autoDeleteAt) {
+                  State.session.autoDeleteAt = current.autoDeleteAt;
+                }
+                const entries = Array.isArray(current?.entries) ? current.entries : [];
+                State.session.entries = entries.map((entry) => ({
+                  ...entry,
+                  online: entry?.online === true,
+                }));
+                UI.updateEntriesUI();
+              }
+              if (State.session.roomId && !current) {
+                Utils.setStoredSession("", "");
+              }
               return;
             }
           };
@@ -2210,7 +2569,11 @@
                 if (!exists) {
                   State.session.entries = [
                     ...State.session.entries,
-                    { userId: payload.userId, nickname: payload.nickname || "" },
+                    {
+                      userId: payload.userId,
+                      nickname: payload.nickname || "",
+                      online: false,
+                    },
                   ];
                 }
                 UI.updateEntriesUI();
@@ -2229,6 +2592,45 @@
                 );
               }
               UI.updateEntriesUI();
+              return;
+            }
+
+            if (message.action === "ONLINE") {
+              if (payload.userId) {
+                const entries = Array.isArray(State.session.entries)
+                  ? State.session.entries
+                  : [];
+                const updated = entries.map((entry) =>
+                  entry.userId === payload.userId
+                    ? { ...entry, online: true }
+                    : entry
+                );
+                if (!updated.some((entry) => entry.userId === payload.userId)) {
+                  updated.push({
+                    userId: payload.userId,
+                    nickname: payload.nickname || "",
+                    online: true,
+                  });
+                }
+                State.session.entries = updated;
+                UI.updateEntriesUI();
+              }
+              return;
+            }
+
+            if (message.action === "OFFLINE") {
+              if (payload.userId) {
+                const entries = Array.isArray(State.session.entries)
+                  ? State.session.entries
+                  : [];
+                const updated = entries.map((entry) =>
+                  entry.userId === payload.userId
+                    ? { ...entry, online: false }
+                    : entry
+                );
+                State.session.entries = updated;
+                UI.updateEntriesUI();
+              }
               return;
             }
 
@@ -2310,6 +2712,7 @@
                 State.session.userId = payload.userId;
                 Utils.setStoredUserId(payload.userId);
               }
+              Actions.sendRoomList();
               return;
             }
 
@@ -2511,6 +2914,10 @@
               UI.closeLeaveRoomModal();
               Actions.exitRoom();
             });
+            Dom.confirmLeaveMembershipBtn.addEventListener("click", () => {
+              UI.closeLeaveRoomModal();
+              Actions.leaveMembership();
+            });
 
             Dom.chatComposer.addEventListener("submit", (event) => {
               event.preventDefault();
@@ -2571,16 +2978,21 @@
           return Boolean(roomId && nickname);
         };
 
-        let shouldAutoRejoin = false;
-
         Events.bind();
+        window.addEventListener("storage", TabLock.handleStorage);
+        window.addEventListener("beforeunload", TabLock.release);
+        const lockOk = TabLock.acquire();
+        if (!lockOk) {
+          State.reconnect.blocked = true;
+          UI.openSystemModal("다른 탭에서 사용 중입니다. 이 탭에서는 연결할 수 없습니다.");
+        }
         const hasStoredSession = restoreSession();
         if (!hasStoredSession) {
           Events.autoOpenJoinModal();
-        } else {
-          shouldAutoRejoin = true;
         }
-        WsClient.connect();
+        if (!State.reconnect.blocked) {
+          WsClient.connect();
+        }
       })();
     </script>
   </body>
