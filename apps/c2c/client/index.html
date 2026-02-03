@@ -1908,6 +1908,7 @@
 
         const Viewport = (() => {
           let lastHeight = 0;
+          let lastKeyboardDelta = 0;
           let scrollLocked = false;
           let scrollTop = 0;
           let scrollEnforceTimer = null;
@@ -1967,10 +1968,12 @@
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
+            let keyboardDelta = 0;
             if (vv) {
               const delta = baseHeight - vv.height;
               if (delta > 120) {
                 height = vv.height;
+                keyboardDelta = delta;
               }
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
@@ -1979,6 +1982,13 @@
               "--app-height",
               `${Math.round(height)}px`
             );
+            if (vv && Dom.chatWindow) {
+              const deltaChange = keyboardDelta - lastKeyboardDelta;
+              if (Math.abs(deltaChange) >= 1) {
+                Dom.chatWindow.scrollTop += deltaChange;
+                lastKeyboardDelta = keyboardDelta;
+              }
+            }
           };
 
           const bind = () => {
