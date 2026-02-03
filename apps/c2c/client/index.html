@@ -2008,7 +2008,7 @@
                   });
                 };
                 chatScrollRaf = requestAnimationFrame(applyScroll);
-                chatScrollTimeout = setTimeout(applyScroll, 80);
+                chatScrollTimeout = setTimeout(applyScroll, 350);
                 lastKeyboardDelta = keyboardDelta;
               }
             }
@@ -2968,7 +2968,19 @@
 
             Dom.backToHomeBtn.addEventListener("click", UI.openLeaveRoomModal);
             Dom.chatWindow.addEventListener("scroll", UI.updateScrollToBottomButton);
-            Dom.scrollToBottomBtn.addEventListener("click", UI.scrollToBottom);
+            Dom.scrollToBottomBtn.addEventListener("mousedown", (event) => {
+              event.preventDefault();
+            });
+            Dom.scrollToBottomBtn.addEventListener("touchstart", (event) => {
+              event.preventDefault();
+            });
+            Dom.scrollToBottomBtn.addEventListener("click", () => {
+              const wasFocused = document.activeElement === Dom.chatInput;
+              UI.scrollToBottom();
+              if (wasFocused) {
+                Dom.chatInput.focus({ preventScroll: true });
+              }
+            });
             Dom.copyRoomLinkBtn.addEventListener("click", UI.copyRoomLink);
             Dom.copyRoomIdBtn.addEventListener("click", UI.copyRoomId);
             Dom.chatInput.addEventListener("input", autoResizeChatInput);
