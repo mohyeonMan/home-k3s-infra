@@ -1704,11 +1704,18 @@
             }
           };
 
-          const appendHistoryDivider = () => {
+          const appendHistoryDivider = (options = {}) => {
             const divider = document.createElement("div");
             divider.className = "history-divider";
             Dom.chatWindow.appendChild(divider);
             updateScrollToBottomButton();
+            const shouldPersist = options.persist !== false;
+            if (shouldPersist && State.session.roomId) {
+              Utils.addRoomMessage(State.session.roomId, {
+                type: "divider",
+                sentAt: Date.now(),
+              });
+            }
           };
 
           const extractErrorReason = (payload) => {
@@ -1843,6 +1850,10 @@
                 UI.appendSystemMessage(message.text || "", { persist: false });
                 return;
               }
+              if (message?.type === "divider") {
+                appendHistoryDivider({ persist: false });
+                return;
+              }
               UI.appendMessage(
                 message.text || "",
                 message.sender || "",
@@ -1853,7 +1864,7 @@
               );
             });
             if (storedMessages.length) {
-              appendHistoryDivider();
+              appendHistoryDivider({ persist: true });
             }
             Dom.homeView.classList.add("hidden");
             Dom.chatView.classList.remove("hidden");
@@ -1913,6 +1924,8 @@
           let scrollTop = 0;
           let scrollEnforceTimer = null;
           let focusAnchor = null;
+          let chatScrollRaf = null;
+          let chatScrollTimeout = null;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1985,10 +1998,17 @@
             if (vv && Dom.chatWindow) {
               const deltaChange = keyboardDelta - lastKeyboardDelta;
               if (Math.abs(deltaChange) >= 1) {
-                Dom.chatWindow.scrollBy({
-                  top: deltaChange,
-                  behavior: "smooth",
-                });
+                if (chatScrollRaf) cancelAnimationFrame(chatScrollRaf);
+                if (chatScrollTimeout) clearTimeout(chatScrollTimeout);
+                const applyScroll = () => {
+                  if (!Dom.chatWindow) return;
+                  Dom.chatWindow.scrollBy({
+                    top: deltaChange,
+                    behavior: "smooth",
+                  });
+                };
+                chatScrollRaf = requestAnimationFrame(applyScroll);
+                chatScrollTimeout = setTimeout(applyScroll, 80);
                 lastKeyboardDelta = keyboardDelta;
               }
             }
