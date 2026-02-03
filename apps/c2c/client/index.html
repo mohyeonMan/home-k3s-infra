@@ -1985,7 +1985,10 @@
             if (vv && Dom.chatWindow) {
               const deltaChange = keyboardDelta - lastKeyboardDelta;
               if (Math.abs(deltaChange) >= 1) {
-                Dom.chatWindow.scrollTop += deltaChange;
+                Dom.chatWindow.scrollBy({
+                  top: deltaChange,
+                  behavior: "smooth",
+                });
                 lastKeyboardDelta = keyboardDelta;
               }
             }
