@@ -2989,6 +2989,8 @@
         const hasStoredSession = restoreSession();
         if (!hasStoredSession) {
           Events.autoOpenJoinModal();
+        } else if (!State.reconnect.blocked) {
+          ReconnectFlow.start("재연결 중...", "rejoin");
         }
         if (!State.reconnect.blocked) {
           WsClient.connect();
