@@ -2018,8 +2018,14 @@
                 const deltaChange = keyboardDelta - lastCommittedKeyboardDelta;
                 if (!Dom.chatWindow) return;
                 if (Math.abs(deltaChange) <= 1) return;
-                Dom.chatWindow.scrollBy({
-                  top: deltaChange,
+                const maxScrollTop =
+                  Dom.chatWindow.scrollHeight - Dom.chatWindow.clientHeight;
+                const nextScrollTop = Math.min(
+                  maxScrollTop,
+                  Math.max(0, Dom.chatWindow.scrollTop + deltaChange)
+                );
+                Dom.chatWindow.scrollTo({
+                  top: nextScrollTop,
                   behavior: "smooth",
                 });
                 lastCommittedKeyboardDelta = keyboardDelta;
