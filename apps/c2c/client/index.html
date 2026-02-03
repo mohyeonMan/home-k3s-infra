@@ -115,7 +115,6 @@
         margin: 0 auto;
         background: var(--paper-bg);
         box-shadow: 0 0 0 1px var(--paper-border), var(--paper-shadow);
-        transform: translateY(var(--app-offset, 0px));
       }
 
 
@@ -1909,7 +1908,6 @@
 
         const Viewport = (() => {
           let lastHeight = 0;
-          let lastKeyboardDelta = 0;
           let scrollLocked = false;
           let scrollTop = 0;
           let scrollEnforceTimer = null;
@@ -1923,9 +1921,6 @@
           };
 
           const lockScroll = () => {
-            if (window.visualViewport) {
-              return;
-            }
             if (scrollLocked) return;
             scrollTop = window.scrollY || 0;
             document.body.style.position = "fixed";
@@ -1937,9 +1932,6 @@
           };
 
           const unlockScroll = () => {
-            if (window.visualViewport) {
-              return;
-            }
             if (!scrollLocked) return;
             document.body.style.position = "";
             document.body.style.top = "";
@@ -1975,14 +1967,10 @@
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
-            let offsetTop = 0;
-            let keyboardDelta = 0;
             if (vv) {
               const delta = baseHeight - vv.height;
               if (delta > 120) {
                 height = vv.height;
-                offsetTop = vv.offsetTop || 0;
-                keyboardDelta = delta;
               }
             }
             if (!height || Math.abs(height - lastHeight) < 1) return;
@@ -1991,17 +1979,6 @@
               "--app-height",
               `${Math.round(height)}px`
             );
-            document.documentElement.style.setProperty(
-              "--app-offset",
-              `${Math.round(offsetTop)}px`
-            );
-            if (vv && focusAnchor) {
-              const deltaChange = keyboardDelta - lastKeyboardDelta;
-              if (Math.abs(deltaChange) >= 1) {
-                window.scrollBy(0, deltaChange);
-                lastKeyboardDelta = keyboardDelta;
-              }
-            }
           };
 
           const bind = () => {
