@@ -598,23 +598,33 @@
         margin: 10px 0;
         margin-left: calc(-1 * var(--chat-padding));
         margin-right: calc(-1 * var(--chat-padding));
-        padding: 8px 12px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        box-shadow: var(--shadow-card);
         position: relative;
+        height: 0;
       }
 
       .history-divider::before {
         content: "";
         position: absolute;
-        left: 16px;
-        right: 16px;
-        top: 50%;
+        left: 0;
+        right: 0;
+        top: 0;
         height: 1px;
         background: var(--border);
-        transform: translateY(-50%);
+      }
+
+      .history-divider::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1px;
+        height: 10px;
+        background: linear-gradient(
+          180deg,
+          rgba(80, 60, 40, 0.35),
+          rgba(80, 60, 40, 0)
+        );
+        pointer-events: none;
       }
 
       .meta {
