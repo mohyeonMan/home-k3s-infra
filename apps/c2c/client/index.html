@@ -1025,6 +1025,32 @@
         };
 
         const Utils = {
+          getRoomMessages(roomId) {
+            if (!roomId) return [];
+            const stored = localStorage.getItem(`c2cRoomMessages:${roomId}`);
+            if (!stored) return [];
+            try {
+              const parsed = JSON.parse(stored);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+              return [];
+            }
+          },
+          setRoomMessages(roomId, messages) {
+            if (!roomId) return;
+            if (!Array.isArray(messages)) return;
+            localStorage.setItem(`c2cRoomMessages:${roomId}`, JSON.stringify(messages));
+          },
+          addRoomMessage(roomId, message) {
+            if (!roomId) return;
+            const messages = Utils.getRoomMessages(roomId);
+            messages.push(message);
+            Utils.setRoomMessages(roomId, messages);
+          },
+          clearRoomMessages(roomId) {
+            if (!roomId) return;
+            localStorage.removeItem(`c2cRoomMessages:${roomId}`);
+          },
           parsePayload(raw) {
             if (!raw) return null;
             if (typeof raw === "object") return raw;
@@ -1574,7 +1600,7 @@
             updateScrollToBottomButton();
           };
 
-          const appendMessage = (text, sender, isSelf, sentAt, senderId) => {
+          const appendMessage = (text, sender, isSelf, sentAt, senderId, options = {}) => {
             const shouldStick = isNearBottom();
             const bubble = document.createElement("div");
             bubble.className = `bubble ${isSelf ? "out" : "in"}`;
@@ -1622,6 +1648,16 @@
               });
             }
             updateScrollToBottomButton();
+            const shouldPersist = options.persist !== false;
+            if (shouldPersist && State.session.roomId) {
+              Utils.addRoomMessage(State.session.roomId, {
+                text,
+                sender,
+                isSelf: Boolean(isSelf),
+                sentAt: sentAt || Date.now(),
+                senderId: senderId || "",
+              });
+            }
           };
 
           const extractErrorReason = (payload) => {
@@ -1750,6 +1786,17 @@
           const enterRoomView = (roomId, nickname) => {
             setRoomMeta(`Connected as ${nickname}`);
             Dom.chatWindow.innerHTML = "";
+            const storedMessages = Utils.getRoomMessages(roomId);
+            storedMessages.forEach((message) => {
+              UI.appendMessage(
+                message.text || "",
+                message.sender || "",
+                message.isSelf === true,
+                message.sentAt,
+                message.senderId || "",
+                { persist: false }
+              );
+            });
             Dom.homeView.classList.add("hidden");
             Dom.chatView.classList.remove("hidden");
             updateEntriesUI();
@@ -2374,6 +2421,7 @@
 
           const leaveMembership = (keepUserId = true) => {
             if (State.session.roomId) {
+              Utils.clearRoomMessages(State.session.roomId);
               Actions.sendLeave(State.session.roomId);
             }
             State.reconnect.pending = false;
