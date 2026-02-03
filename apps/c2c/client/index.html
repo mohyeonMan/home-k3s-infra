@@ -1933,8 +1933,7 @@
           let scrollEnforceTimer = null;
           let focusAnchor = null;
           let chatScrollTimeout = null;
-          let chatScrollTimeout2 = null;
-          let pendingKeyboardDelta = 0;
+          let lastCommittedKeyboardDelta = 0;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -2014,22 +2013,17 @@
               );
             }
             if (vv && Dom.chatWindow) {
-              const deltaChange = keyboardDelta - lastKeyboardDelta;
-              if (Math.abs(deltaChange) > 1) {
-                if (chatScrollTimeout) clearTimeout(chatScrollTimeout);
-                if (chatScrollTimeout2) clearTimeout(chatScrollTimeout2);
-                pendingKeyboardDelta = keyboardDelta;
-                const applyScroll = () => {
-                  if (!Dom.chatWindow) return;
-                  if (pendingKeyboardDelta !== lastKeyboardDelta) return;
-                  Dom.chatWindow.scrollBy({
-                    top: deltaChange,
-                    behavior: "smooth",
-                  });
-                };
-                chatScrollTimeout = setTimeout(applyScroll, 400);
-                chatScrollTimeout2 = setTimeout(applyScroll, 650);
-              }
+              if (chatScrollTimeout) clearTimeout(chatScrollTimeout);
+              chatScrollTimeout = setTimeout(() => {
+                const deltaChange = keyboardDelta - lastCommittedKeyboardDelta;
+                if (!Dom.chatWindow) return;
+                if (Math.abs(deltaChange) <= 1) return;
+                Dom.chatWindow.scrollBy({
+                  top: deltaChange,
+                  behavior: "smooth",
+                });
+                lastCommittedKeyboardDelta = keyboardDelta;
+              }, 1000);
               lastKeyboardDelta = keyboardDelta;
             }
           };
