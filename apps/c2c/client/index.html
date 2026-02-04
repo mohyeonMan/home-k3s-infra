@@ -1991,6 +1991,10 @@
             preserveUntil = 0;
           };
 
+          const cancelPreserve = () => {
+            clearPreserveTimer();
+          };
+
           const captureAnchor = () => {
             if (
               !Dom.chatWindow ||
@@ -2139,7 +2143,7 @@
             });
           };
 
-          return { bind };
+          return { bind, cancelPreserve };
         })();
 
         const JoinFlow = (() => {
@@ -3185,6 +3189,7 @@
                   Date.now(),
                   State.session.userId
                 );
+                Viewport.cancelPreserve();
                 UI.scrollToBottom();
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
