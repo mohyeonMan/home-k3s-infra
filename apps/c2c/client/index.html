@@ -263,6 +263,10 @@
         margin-top: 12px;
       }
 
+      .actions .btn {
+        min-height: 44px;
+      }
+
       .btn {
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -376,6 +380,20 @@
         padding-left: 18px;
         color: var(--muted);
         font-size: 13px;
+      }
+
+      #homeView {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      #homeView .app-header {
+        margin-bottom: 4px;
+      }
+
+      #homeView .card {
+        padding: 16px;
       }
 
       .pill {
@@ -725,18 +743,18 @@
           </div>
         </header>
 
-        <section class="card" id="roomListCard">
-          <h2>내 방</h2>
-          <p class="muted" id="roomListEmpty">참여한 방이 없습니다.</p>
-          <ul class="list" id="roomList"></ul>
-        </section>
-
         <section class="card">
           <h2>방 메뉴</h2>
           <div class="actions">
             <button class="btn primary" id="createRoomBtn">방 만들기</button>
             <button class="btn" id="joinRoomBtn">방 참여</button>
           </div>
+        </section>
+
+        <section class="card" id="roomListCard">
+          <h2>내 방</h2>
+          <p class="muted" id="roomListEmpty">참여한 방이 없습니다.</p>
+          <ul class="list" id="roomList"></ul>
         </section>
 
         <section class="card">
