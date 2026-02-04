@@ -1025,6 +1025,10 @@
             entries: [],
           },
           roomList: [],
+          leave: {
+            requestId: "",
+            pending: false,
+          },
           reconnect: {
             pending: false,
             mode: "none",
@@ -1879,11 +1883,16 @@
             scrollToBottom();
           };
 
-          const exitRoomView = () => {
+          const exitRoomView = (options = {}) => {
+            const { refreshRoomList = true } = options;
             Dom.chatInput.value = "";
             Dom.chatView.classList.add("hidden");
             Dom.homeView.classList.remove("hidden");
-            Actions.sendRoomList();
+            State.roomList = [];
+            updateRoomListUI([]);
+            if (refreshRoomList) {
+              Actions.sendRoomList();
+            }
           };
 
           return {
@@ -2575,9 +2584,9 @@
             WsClient.sendCommand("OFFLINE", { roomId });
           };
 
-          const sendLeave = async (roomId) => {
+          const sendLeave = (roomId) => {
             if (!roomId) return;
-            WsClient.sendCommand("LEAVE", { roomId });
+            return WsClient.sendCommand("LEAVE", { roomId });
           };
 
           const sendRoomList = async () => {
@@ -2639,7 +2648,12 @@
           const leaveMembership = (keepUserId = true) => {
             if (State.session.roomId) {
               Utils.clearRoomMessages(State.session.roomId);
-              Actions.sendLeave(State.session.roomId);
+              const requestId = Actions.sendLeave(State.session.roomId);
+              State.leave.pending = Boolean(requestId);
+              State.leave.requestId = requestId || "";
+              if (State.leave.pending) {
+                return;
+              }
             }
             State.reconnect.pending = false;
             State.clearSession(keepUserId);
@@ -2695,6 +2709,13 @@
               Utils.setStoredSession("", "");
               UI.exitRoomView();
               UI.openSystemModal("방 접속 상태를 갱신하지 못했습니다. 다시 입장해 주세요.");
+              return;
+            }
+            if (message.action === "LEAVE") {
+              State.leave.pending = false;
+              State.leave.requestId = "";
+              UI.openSystemModal("방 나가기에 실패했습니다.");
+              Actions.sendRoomList();
               return;
             }
           };
@@ -2758,6 +2779,19 @@
             }
 
             if (message.action === "JOIN_REQUEST") {
+              return;
+            }
+
+            if (message.action === "LEAVE") {
+              if (State.leave.pending) {
+                State.leave.pending = false;
+                State.leave.requestId = "";
+                State.reconnect.pending = false;
+                State.clearSession(true);
+                Utils.setStoredSession("", "");
+                UI.exitRoomView();
+              }
+              Actions.sendRoomList();
               return;
             }
 

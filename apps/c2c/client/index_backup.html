@@ -1380,10 +1380,11 @@
             }, SCROLL_BTN_DELAY_MS);
           };
 
-          const scrollToBottom = () => {
+          const scrollToBottom = (options = {}) => {
+            const { behavior = "smooth" } = options;
             Dom.chatWindow.scrollTo({
               top: Dom.chatWindow.scrollHeight,
-              behavior: "smooth",
+              behavior,
             });
             updateScrollToBottomButton();
           };
@@ -1619,7 +1620,8 @@
           };
 
           const appendSystemMessage = (text, options = {}) => {
-            const shouldStick = isNearBottom();
+            const shouldStick =
+              Viewport.isAutoStickEnabled() || isNearBottom();
             const notice = document.createElement("div");
             notice.className = "system-message";
             notice.textContent = text;
@@ -1632,9 +1634,8 @@
             lastSenderId = "";
             lastSenderEl = null;
             if (shouldStick) {
-              Dom.chatWindow.scrollTo({
-                top: Dom.chatWindow.scrollHeight,
-                behavior: "smooth",
+              scrollToBottom({
+                behavior: Viewport.isAutoStickEnabled() ? "auto" : "smooth",
               });
             }
             updateScrollToBottomButton();
@@ -1649,7 +1650,8 @@
           };
 
           const appendMessage = (text, sender, isSelf, sentAt, senderId, options = {}) => {
-            const shouldStick = isNearBottom();
+            const shouldStick =
+              Viewport.isAutoStickEnabled() || isNearBottom();
             const bubble = document.createElement("div");
             bubble.className = `bubble ${isSelf ? "out" : "in"}`;
             if (!isSelf) {
@@ -1690,9 +1692,8 @@
               lastMessageIsSelf = isSelfMsg;
             }
             if (shouldStick) {
-              Dom.chatWindow.scrollTo({
-                top: Dom.chatWindow.scrollHeight,
-                behavior: "smooth",
+              scrollToBottom({
+                behavior: Viewport.isAutoStickEnabled() ? "auto" : "smooth",
               });
             }
             updateScrollToBottomButton();
@@ -2168,16 +2169,14 @@
             }
           };
 
-          const onOutgoingMessage = () => {
+          const enableAutoStick = () => {
             autoStickToBottom = true;
             preserveBottomOffset = 0;
-            applyStickToBottom();
-            applyAfterResize();
           };
 
           const isAutoStickEnabled = () => autoStickToBottom;
 
-          return { bind, cancelPreserve, onOutgoingMessage, isAutoStickEnabled };
+          return { bind, cancelPreserve, enableAutoStick, isAutoStickEnabled };
         })();
 
         const JoinFlow = (() => {
@@ -3226,8 +3225,8 @@
                 );
                 if (shouldStick) {
                   Viewport.cancelPreserve();
+                  Viewport.enableAutoStick();
                   UI.scrollToBottom();
-                  Viewport.onOutgoingMessage();
                 }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
