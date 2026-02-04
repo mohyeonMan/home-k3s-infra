@@ -2168,16 +2168,14 @@
             }
           };
 
-          const onOutgoingMessage = () => {
+          const enableAutoStick = () => {
             autoStickToBottom = true;
             preserveBottomOffset = 0;
-            applyStickToBottom();
-            applyAfterResize();
           };
 
           const isAutoStickEnabled = () => autoStickToBottom;
 
-          return { bind, cancelPreserve, onOutgoingMessage, isAutoStickEnabled };
+          return { bind, cancelPreserve, enableAutoStick, isAutoStickEnabled };
         })();
 
         const JoinFlow = (() => {
@@ -3226,8 +3224,8 @@
                 );
                 if (shouldStick) {
                   Viewport.cancelPreserve();
+                  Viewport.enableAutoStick();
                   UI.scrollToBottom();
-                  Viewport.onOutgoingMessage();
                 }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
