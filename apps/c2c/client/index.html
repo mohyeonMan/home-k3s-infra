@@ -1388,6 +1388,19 @@
             updateScrollToBottomButton();
           };
 
+          const forceStickToBottom = () => {
+            const steps = [0, 100, 300, 600];
+            steps.forEach((delay) => {
+              setTimeout(() => {
+                Dom.chatWindow.scrollTo({
+                  top: Dom.chatWindow.scrollHeight,
+                  behavior: "auto",
+                });
+                updateScrollToBottomButton();
+              }, delay);
+            });
+          };
+
           const setRoomMeta = (text) => {
             Dom.roomMeta.textContent = text;
           };
@@ -1917,6 +1930,7 @@
             enterRoomView,
             exitRoomView,
             scrollToBottom,
+            forceStickToBottom,
             updateScrollToBottomButton,
           };
         })();
@@ -3183,7 +3197,7 @@
                 );
                 if (shouldStick) {
                   Viewport.cancelPreserve();
-                  UI.scrollToBottom();
+                  UI.forceStickToBottom();
                 }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
