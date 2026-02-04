@@ -1932,6 +1932,8 @@
           let applyRaf = null;
           let autoStickToBottom = true;
           const SCROLL_THRESHOLD_PX = 24;
+          let isResizing = false;
+          let resizeEndTimer = null;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1989,6 +1991,20 @@
               cancelAnimationFrame(applyRaf);
               applyRaf = null;
             }
+          };
+
+          const markResizing = () => {
+            isResizing = true;
+            if (resizeEndTimer) {
+              clearTimeout(resizeEndTimer);
+            }
+            resizeEndTimer = setTimeout(() => {
+              isResizing = false;
+              resizeEndTimer = null;
+              if (autoStickToBottom || preserveBottomOffset !== null) {
+                applyAfterResize();
+              }
+            }, 200);
           };
 
           const isAtBottom = () => {
@@ -2053,6 +2069,14 @@
               } else if (preserveBottomOffset !== null) {
                 applyBottomOffset();
               }
+              requestAnimationFrame(() => {
+                if (!Dom.chatWindow) return;
+                if (autoStickToBottom) {
+                  applyStickToBottom();
+                } else if (preserveBottomOffset !== null) {
+                  applyBottomOffset();
+                }
+              });
             });
           };
 
@@ -2078,13 +2102,13 @@
             }
             if (!height) return;
             if (Math.abs(height - lastHeight) >= 1) {
+              markResizing();
               lastHeight = height;
               document.documentElement.style.setProperty(
                 "--app-height",
                 `${Math.round(height)}px`
               );
               if (prevBottomGap !== null) {
-                autoStickToBottom = prevBottomGap <= SCROLL_THRESHOLD_PX;
                 preserveBottomOffset = autoStickToBottom ? 0 : prevBottomGap;
               }
               applyAfterResize();
@@ -2108,11 +2132,13 @@
                   element: event.target,
                   visualTop: rect.top,
                 };
-                autoStickToBottom = isAtBottom();
+                if (!isResizing) {
+                  autoStickToBottom = isAtBottom();
+                }
                 captureBottomOffset();
-                applyAfterResize();
                 lockScroll();
                 setAppHeight();
+                applyAfterResize();
                 enforceScrollTop();
               }
             });
@@ -2120,10 +2146,12 @@
               setTimeout(() => {
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
-                  autoStickToBottom = isAtBottom();
+                  if (!isResizing) {
+                    autoStickToBottom = isAtBottom();
+                  }
                   captureBottomOffset();
-                  applyAfterResize();
                   unlockScroll();
+                  applyAfterResize();
                   focusAnchor = null;
                 }
               }, 0);
@@ -2133,7 +2161,9 @@
             });
             if (Dom.chatWindow) {
               Dom.chatWindow.addEventListener("scroll", () => {
-                autoStickToBottom = isAtBottom();
+                if (!isResizing) {
+                  autoStickToBottom = isAtBottom();
+                }
               });
             }
           };
@@ -2145,7 +2175,9 @@
             applyAfterResize();
           };
 
-          return { bind, cancelPreserve, onOutgoingMessage };
+          const isAutoStickEnabled = () => autoStickToBottom;
+
+          return { bind, cancelPreserve, onOutgoingMessage, isAutoStickEnabled };
         })();
 
         const JoinFlow = (() => {
@@ -3178,11 +3210,7 @@
                 UI.appendSystemMessage("방에 먼저 입장하세요.");
                 return;
               }
-              const shouldStick =
-                Dom.chatWindow.scrollHeight -
-                  Dom.chatWindow.scrollTop -
-                  Dom.chatWindow.clientHeight <=
-                24;
+              const shouldStick = Viewport.isAutoStickEnabled();
               const payload = {
                 roomId: State.session.roomId,
                 message: rawMessage,
