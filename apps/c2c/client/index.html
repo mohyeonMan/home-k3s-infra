@@ -1928,6 +1928,10 @@
           let scrollEnforceTimer = null;
           let focusAnchor = null;
           let preserveScrollRaf = null;
+          let preserveBottom = null;
+          let preserveFramesLeft = 0;
+          let preserveLastHeight = 0;
+          let preserveStabilizeTimer = null;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1979,6 +1983,58 @@
             }, 40);
           };
 
+          const clearPreserveTimers = () => {
+            if (preserveScrollRaf) {
+              cancelAnimationFrame(preserveScrollRaf);
+              preserveScrollRaf = null;
+            }
+            if (preserveStabilizeTimer) {
+              clearTimeout(preserveStabilizeTimer);
+              preserveStabilizeTimer = null;
+            }
+          };
+
+          const applyPreserveBottom = () => {
+            if (!Dom.chatWindow) return;
+            if (
+              preserveBottom === null ||
+              !Dom.chatView ||
+              Dom.chatView.classList.contains("hidden")
+            ) {
+              return;
+            }
+            const newClientHeight = Dom.chatWindow.clientHeight;
+            const maxScrollTop = Math.max(0, Dom.chatWindow.scrollHeight - newClientHeight);
+            const nextScrollTop = Math.min(
+              maxScrollTop,
+              Math.max(0, preserveBottom - newClientHeight)
+            );
+            Dom.chatWindow.scrollTop = nextScrollTop;
+          };
+
+          const schedulePreserveBottom = (height) => {
+            preserveLastHeight = height;
+            preserveFramesLeft = 10;
+            const step = () => {
+              if (!Dom.chatWindow) return;
+              applyPreserveBottom();
+              preserveFramesLeft -= 1;
+              if (preserveFramesLeft > 0) {
+                preserveScrollRaf = requestAnimationFrame(step);
+              } else {
+                preserveScrollRaf = null;
+              }
+            };
+            if (!preserveScrollRaf) {
+              preserveScrollRaf = requestAnimationFrame(step);
+            }
+            if (preserveStabilizeTimer) clearTimeout(preserveStabilizeTimer);
+            preserveStabilizeTimer = setTimeout(() => {
+              applyPreserveBottom();
+              preserveStabilizeTimer = null;
+            }, 500);
+          };
+
           const setAppHeight = () => {
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
@@ -2002,28 +2058,19 @@
                 `${Math.round(height)}px`
               );
             }
-            if (Dom.chatWindow) {
-              if (preserveScrollRaf) cancelAnimationFrame(preserveScrollRaf);
-              preserveScrollRaf = requestAnimationFrame(() => {
-                if (!Dom.chatWindow) return;
-                if (
-                  prevBottom !== null &&
-                  Dom.chatView &&
-                  !Dom.chatView.classList.contains("hidden")
-                ) {
-                  const newClientHeight = Dom.chatWindow.clientHeight;
-                  const maxScrollTop = Math.max(
-                    0,
-                    Dom.chatWindow.scrollHeight - newClientHeight
-                  );
-                  const nextScrollTop = Math.min(
-                    maxScrollTop,
-                    Math.max(0, prevBottom - newClientHeight)
-                  );
-                  Dom.chatWindow.scrollTop = nextScrollTop;
-                }
-                preserveScrollRaf = null;
-              });
+            if (
+              prevBottom !== null &&
+              Dom.chatView &&
+              !Dom.chatView.classList.contains("hidden")
+            ) {
+              preserveBottom = prevBottom;
+              if (Math.abs(height - preserveLastHeight) >= 1) {
+                schedulePreserveBottom(height);
+              }
+            } else {
+              preserveBottom = null;
+              preserveFramesLeft = 0;
+              clearPreserveTimers();
             }
           };
 
