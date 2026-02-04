@@ -1983,12 +1983,13 @@
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
-            let prevDistanceFromBottom = 0;
-            if (Dom.chatWindow) {
-              prevDistanceFromBottom =
-                Dom.chatWindow.scrollHeight -
-                Dom.chatWindow.scrollTop -
-                Dom.chatWindow.clientHeight;
+            let prevBottom = null;
+            if (
+              Dom.chatWindow &&
+              Dom.chatView &&
+              !Dom.chatView.classList.contains("hidden")
+            ) {
+              prevBottom = Dom.chatWindow.scrollTop + Dom.chatWindow.clientHeight;
             }
             if (vv) {
               height = vv.height;
@@ -2005,13 +2006,22 @@
               if (preserveScrollRaf) cancelAnimationFrame(preserveScrollRaf);
               preserveScrollRaf = requestAnimationFrame(() => {
                 if (!Dom.chatWindow) return;
-                const nextScrollTop = Math.max(
-                  0,
-                  Dom.chatWindow.scrollHeight -
-                    Dom.chatWindow.clientHeight -
-                    prevDistanceFromBottom
-                );
-                Dom.chatWindow.scrollTop = nextScrollTop;
+                if (
+                  prevBottom !== null &&
+                  Dom.chatView &&
+                  !Dom.chatView.classList.contains("hidden")
+                ) {
+                  const newClientHeight = Dom.chatWindow.clientHeight;
+                  const maxScrollTop = Math.max(
+                    0,
+                    Dom.chatWindow.scrollHeight - newClientHeight
+                  );
+                  const nextScrollTop = Math.min(
+                    maxScrollTop,
+                    Math.max(0, prevBottom - newClientHeight)
+                  );
+                  Dom.chatWindow.scrollTop = nextScrollTop;
+                }
                 preserveScrollRaf = null;
               });
             }
