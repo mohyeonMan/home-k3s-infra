@@ -2066,6 +2066,7 @@
               height = vv.height;
             }
             if (!height) return;
+            const prevHeight = lastHeight;
             if (Math.abs(height - lastHeight) >= 1) {
               if (!preserveTimer) {
                 captureAnchor();
@@ -2077,6 +2078,9 @@
               );
               startPreserveWindow();
               applyAnchor();
+              if (height > prevHeight) {
+                startPreserveWindow(900);
+              }
             } else if (preserveTimer) {
               applyAnchor();
             }
@@ -2120,6 +2124,11 @@
               setTimeout(() => {
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
+                  if (!preserveTimer) {
+                    captureAnchor();
+                  }
+                  startPreserveWindow(900);
+                  applyAnchor();
                   unlockScroll();
                   focusAnchor = null;
                 }
