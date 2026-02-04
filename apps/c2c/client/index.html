@@ -1388,18 +1388,6 @@
             updateScrollToBottomButton();
           };
 
-          const forceStickToBottom = () => {
-            const steps = [0, 100, 300, 600];
-            steps.forEach((delay) => {
-              setTimeout(() => {
-                Dom.chatWindow.scrollTo({
-                  top: Dom.chatWindow.scrollHeight,
-                  behavior: "auto",
-                });
-                updateScrollToBottomButton();
-              }, delay);
-            });
-          };
 
           const setRoomMeta = (text) => {
             Dom.roomMeta.textContent = text;
@@ -1930,7 +1918,6 @@
             enterRoomView,
             exitRoomView,
             scrollToBottom,
-            forceStickToBottom,
             updateScrollToBottomButton,
           };
         })();
@@ -1941,9 +1928,11 @@
           let scrollTop = 0;
           let scrollEnforceTimer = null;
           let focusAnchor = null;
-          let preserveTimer = null;
           let preserveBottomOffset = null;
-          let preserveUntil = 0;
+          let adjustMode = "none";
+          let adjustFramesLeft = 0;
+          let adjustRaf = null;
+          const SCROLL_THRESHOLD_PX = 24;
 
           const isEditableTarget = (target) => {
             if (!target) return false;
@@ -1995,17 +1984,18 @@
             }, 40);
           };
 
-          const clearPreserveTimer = () => {
-            if (preserveTimer) {
-              clearInterval(preserveTimer);
-              preserveTimer = null;
+          const clearAdjust = () => {
+            if (adjustRaf) {
+              cancelAnimationFrame(adjustRaf);
+              adjustRaf = null;
             }
-            preserveBottomOffset = null;
-            preserveUntil = 0;
+            adjustMode = "none";
+            adjustFramesLeft = 0;
           };
 
           const cancelPreserve = () => {
-            clearPreserveTimer();
+            preserveBottomOffset = null;
+            clearAdjust();
           };
 
           const captureBottomOffset = () => {
@@ -2043,58 +2033,75 @@
             Dom.chatWindow.scrollTop = nextScrollTop;
           };
 
-          const startPreserveWindow = (durationMs = 1000) => {
-            const targetUntil = Date.now() + durationMs;
-            preserveUntil = Math.max(preserveUntil, targetUntil);
-            if (preserveBottomOffset === null) {
-              captureBottomOffset();
-            }
-            if (preserveTimer) return;
-            preserveTimer = setInterval(() => {
-              applyBottomOffset();
-              if (Date.now() >= preserveUntil) {
-                clearPreserveTimer();
+          const applyStickToBottom = () => {
+            if (!Dom.chatWindow) return;
+            Dom.chatWindow.scrollTop = Dom.chatWindow.scrollHeight;
+          };
+
+          const scheduleAdjust = (mode, frames = 6) => {
+            if (!Dom.chatWindow) return;
+            adjustMode = mode;
+            adjustFramesLeft = Math.max(adjustFramesLeft, frames);
+            if (adjustRaf) return;
+            const step = () => {
+              if (!Dom.chatWindow) {
+                clearAdjust();
+                return;
               }
-            }, 50);
+              if (adjustMode === "bottom") {
+                applyStickToBottom();
+              } else if (adjustMode === "offset") {
+                applyBottomOffset();
+              }
+              adjustFramesLeft -= 1;
+              if (adjustFramesLeft > 0) {
+                adjustRaf = requestAnimationFrame(step);
+              } else {
+                clearAdjust();
+              }
+            };
+            adjustRaf = requestAnimationFrame(step);
+          };
+
+          const stickToBottom = (frames = 6) => {
+            preserveBottomOffset = 0;
+            scheduleAdjust("bottom", frames);
           };
 
           const setAppHeight = () => {
             const baseHeight = window.innerHeight;
             const vv = window.visualViewport;
             let height = baseHeight;
-            let prevBottom = null;
+            let prevBottomGap = null;
             if (
               Dom.chatWindow &&
               Dom.chatView &&
               !Dom.chatView.classList.contains("hidden")
             ) {
-              prevBottom = Dom.chatWindow.scrollTop + Dom.chatWindow.clientHeight;
+              const bottom =
+                Dom.chatWindow.scrollTop + Dom.chatWindow.clientHeight;
+              prevBottomGap = Math.max(
+                0,
+                Dom.chatWindow.scrollHeight - bottom
+              );
             }
             if (vv) {
               height = vv.height;
             }
             if (!height) return;
-            const prevHeight = lastHeight;
             if (Math.abs(height - lastHeight) >= 1) {
-              if (!preserveTimer) {
-                captureBottomOffset();
-              }
               lastHeight = height;
               document.documentElement.style.setProperty(
                 "--app-height",
                 `${Math.round(height)}px`
               );
-              startPreserveWindow(height > prevHeight ? 1200 : 1000);
-              applyBottomOffset();
-            } else if (preserveTimer) {
-              applyBottomOffset();
-            }
-            if (
-              prevBottom === null ||
-              !Dom.chatView ||
-              Dom.chatView.classList.contains("hidden")
-            ) {
-              clearPreserveTimer();
+              if (prevBottomGap !== null && prevBottomGap <= SCROLL_THRESHOLD_PX) {
+                preserveBottomOffset = 0;
+                scheduleAdjust("bottom", 8);
+              } else if (prevBottomGap !== null) {
+                preserveBottomOffset = prevBottomGap;
+                scheduleAdjust("offset", 8);
+              }
             }
           };
 
@@ -2115,11 +2122,12 @@
                   element: event.target,
                   visualTop: rect.top,
                 };
-                if (!preserveTimer) {
-                  captureBottomOffset();
+                captureBottomOffset();
+                if (preserveBottomOffset !== null && preserveBottomOffset <= SCROLL_THRESHOLD_PX) {
+                  stickToBottom(8);
+                } else {
+                  scheduleAdjust("offset", 8);
                 }
-                startPreserveWindow(1200);
-                applyBottomOffset();
                 lockScroll();
                 setAppHeight();
                 enforceScrollTop();
@@ -2129,11 +2137,12 @@
               setTimeout(() => {
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
-                  if (!preserveTimer) {
-                    captureBottomOffset();
+                  captureBottomOffset();
+                  if (preserveBottomOffset !== null && preserveBottomOffset <= SCROLL_THRESHOLD_PX) {
+                    stickToBottom(8);
+                  } else {
+                    scheduleAdjust("offset", 8);
                   }
-                  startPreserveWindow(1200);
-                  applyBottomOffset();
                   unlockScroll();
                   focusAnchor = null;
                 }
@@ -2144,7 +2153,7 @@
             });
           };
 
-          return { bind, cancelPreserve };
+          return { bind, cancelPreserve, stickToBottom };
         })();
 
         const JoinFlow = (() => {
@@ -3197,7 +3206,7 @@
                 );
                 if (shouldStick) {
                   Viewport.cancelPreserve();
-                  UI.forceStickToBottom();
+                  Viewport.stickToBottom(8);
                 }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
