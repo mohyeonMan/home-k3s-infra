@@ -1929,9 +1929,8 @@
           let scrollEnforceTimer = null;
           let focusAnchor = null;
           let preserveBottomOffset = null;
-          let adjustMode = "none";
-          let adjustFramesLeft = 0;
-          let adjustRaf = null;
+          let applyRaf = null;
+          let autoStickToBottom = true;
           const SCROLL_THRESHOLD_PX = 24;
 
           const isEditableTarget = (target) => {
@@ -1984,18 +1983,22 @@
             }, 40);
           };
 
-          const clearAdjust = () => {
-            if (adjustRaf) {
-              cancelAnimationFrame(adjustRaf);
-              adjustRaf = null;
-            }
-            adjustMode = "none";
-            adjustFramesLeft = 0;
-          };
-
           const cancelPreserve = () => {
             preserveBottomOffset = null;
-            clearAdjust();
+            if (applyRaf) {
+              cancelAnimationFrame(applyRaf);
+              applyRaf = null;
+            }
+          };
+
+          const isAtBottom = () => {
+            if (!Dom.chatWindow) return true;
+            return (
+              Dom.chatWindow.scrollHeight -
+                Dom.chatWindow.scrollTop -
+                Dom.chatWindow.clientHeight <=
+              SCROLL_THRESHOLD_PX
+            );
           };
 
           const captureBottomOffset = () => {
@@ -2038,34 +2041,19 @@
             Dom.chatWindow.scrollTop = Dom.chatWindow.scrollHeight;
           };
 
-          const scheduleAdjust = (mode, frames = 6) => {
-            if (!Dom.chatWindow) return;
-            adjustMode = mode;
-            adjustFramesLeft = Math.max(adjustFramesLeft, frames);
-            if (adjustRaf) return;
-            const step = () => {
-              if (!Dom.chatWindow) {
-                clearAdjust();
-                return;
-              }
-              if (adjustMode === "bottom") {
+          const applyAfterResize = () => {
+            if (applyRaf) {
+              cancelAnimationFrame(applyRaf);
+            }
+            applyRaf = requestAnimationFrame(() => {
+              applyRaf = null;
+              if (!Dom.chatWindow) return;
+              if (autoStickToBottom) {
                 applyStickToBottom();
-              } else if (adjustMode === "offset") {
+              } else if (preserveBottomOffset !== null) {
                 applyBottomOffset();
               }
-              adjustFramesLeft -= 1;
-              if (adjustFramesLeft > 0) {
-                adjustRaf = requestAnimationFrame(step);
-              } else {
-                clearAdjust();
-              }
-            };
-            adjustRaf = requestAnimationFrame(step);
-          };
-
-          const stickToBottom = (frames = 6) => {
-            preserveBottomOffset = 0;
-            scheduleAdjust("bottom", frames);
+            });
           };
 
           const setAppHeight = () => {
@@ -2095,13 +2083,11 @@
                 "--app-height",
                 `${Math.round(height)}px`
               );
-              if (prevBottomGap !== null && prevBottomGap <= SCROLL_THRESHOLD_PX) {
-                preserveBottomOffset = 0;
-                scheduleAdjust("bottom", 8);
-              } else if (prevBottomGap !== null) {
-                preserveBottomOffset = prevBottomGap;
-                scheduleAdjust("offset", 8);
+              if (prevBottomGap !== null) {
+                autoStickToBottom = prevBottomGap <= SCROLL_THRESHOLD_PX;
+                preserveBottomOffset = autoStickToBottom ? 0 : prevBottomGap;
               }
+              applyAfterResize();
             }
           };
 
@@ -2122,12 +2108,9 @@
                   element: event.target,
                   visualTop: rect.top,
                 };
+                autoStickToBottom = isAtBottom();
                 captureBottomOffset();
-                if (preserveBottomOffset !== null && preserveBottomOffset <= SCROLL_THRESHOLD_PX) {
-                  stickToBottom(8);
-                } else {
-                  scheduleAdjust("offset", 8);
-                }
+                applyAfterResize();
                 lockScroll();
                 setAppHeight();
                 enforceScrollTop();
@@ -2137,12 +2120,9 @@
               setTimeout(() => {
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
+                  autoStickToBottom = isAtBottom();
                   captureBottomOffset();
-                  if (preserveBottomOffset !== null && preserveBottomOffset <= SCROLL_THRESHOLD_PX) {
-                    stickToBottom(8);
-                  } else {
-                    scheduleAdjust("offset", 8);
-                  }
+                  applyAfterResize();
                   unlockScroll();
                   focusAnchor = null;
                 }
@@ -2151,9 +2131,21 @@
             window.addEventListener("scroll", () => {
               if (focusAnchor) enforceScrollTop();
             });
+            if (Dom.chatWindow) {
+              Dom.chatWindow.addEventListener("scroll", () => {
+                autoStickToBottom = isAtBottom();
+              });
+            }
           };
 
-          return { bind, cancelPreserve, stickToBottom };
+          const onOutgoingMessage = () => {
+            autoStickToBottom = true;
+            preserveBottomOffset = 0;
+            applyStickToBottom();
+            applyAfterResize();
+          };
+
+          return { bind, cancelPreserve, onOutgoingMessage };
         })();
 
         const JoinFlow = (() => {
@@ -3206,7 +3198,8 @@
                 );
                 if (shouldStick) {
                   Viewport.cancelPreserve();
-                  Viewport.stickToBottom(8);
+                  UI.scrollToBottom();
+                  Viewport.onOutgoingMessage();
                 }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
