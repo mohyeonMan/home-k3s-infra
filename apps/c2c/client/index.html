@@ -130,6 +130,10 @@
         gap: 12px;
       }
 
+      #chatView.hidden {
+        display: none;
+      }
+
       .app-header {
         display: flex;
         justify-content: space-between;
@@ -388,12 +392,97 @@
         gap: 14px;
       }
 
+      #homeView.hidden {
+        display: none;
+      }
+
       #homeView .app-header {
         margin-bottom: 4px;
       }
 
       #homeView .card {
         padding: 16px;
+      }
+
+      .roomlist-refresh {
+        margin-top: 8px;
+        margin-bottom: 6px;
+      }
+
+      .refresh-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+
+      .refresh-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--accent);
+      }
+
+      .refresh-bar.is-animating {
+        animation: refreshFill 5s linear forwards;
+      }
+
+      @keyframes refreshFill {
+        from {
+          width: 0%;
+        }
+        to {
+          width: 100%;
+        }
+      }
+
+      #roomList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .room-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .room-main {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .room-title-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .room-meta {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .room-chip {
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: var(--pill-soft-bg);
+        border: 1px solid var(--pill-soft-border);
+        color: var(--pill-soft-text);
+        font-size: 10px;
       }
 
       .pill {
@@ -738,11 +827,12 @@
       <div id="homeView">
         <header class="app-header">
           <div>
-            <h1>C2C 클라이언트</h1>
-            <p class="muted">방을 만들거나 참여해서 대화를 시작하세요.</p>
+            <h1>C2C</h1>
+            <p class="muted">"c2c" 는 cup-to-cup, 온라인 귓속말입니다.</p>
+            <p class="muted">c2c 서버는 여러분의 메시지를 저장하지 않습니다.</p>
+            <p class="muted">방을 만들거나 참여해, 대화를 바로 시작하세요.</p>
           </div>
         </header>
-
         <section class="card">
           <h2>방 메뉴</h2>
           <div class="actions">
@@ -753,6 +843,11 @@
 
         <section class="card" id="roomListCard">
           <h2>내 방</h2>
+          <div class="roomlist-refresh" aria-hidden="true">
+            <div class="refresh-track">
+              <div class="refresh-bar" id="roomListRefreshBar"></div>
+            </div>
+          </div>
           <p class="muted" id="roomListEmpty">참여한 방이 없습니다.</p>
           <ul class="list" id="roomList"></ul>
         </section>
@@ -760,9 +855,9 @@
         <section class="card">
           <h2>빠른 팁</h2>
           <ul class="list">
-            <li>기기마다 다른 닉네임을 사용하세요.</li>
-            <li>방 ID를 공유해 초대할 수 있어요.</li>
-            <li>채팅 화면은 모바일에 최적화되어 있어요.</li>
+            <li>닉네임은 방마다 다르게 설정하면 구분이 쉬워요.</li>
+            <li>방 ID를 공유하면 바로 초대할 수 있어요.</li>
+            <li>최근 대화는 기기에만 저장되어 이어서 볼 수 있어요.</li>
           </ul>
         </section>
       </div>
@@ -969,6 +1064,7 @@
             roomListCard: byId("roomListCard"),
             roomList: byId("roomList"),
             roomListEmpty: byId("roomListEmpty"),
+            roomListRefreshBar: byId("roomListRefreshBar"),
             roomTitle: byId("roomTitle"),
             roomMeta: byId("roomMeta"),
             roomIdText: byId("roomIdText"),
@@ -1140,6 +1236,15 @@
             const hh = String(date.getHours()).padStart(2, "0");
             const min = String(date.getMinutes()).padStart(2, "0");
             return `${yy}-${mm}-${dd} ${hh}:${min}`;
+          },
+          formatDateOnly(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            const yy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            return `${yy}-${mm}-${dd}`;
           },
           getQueryParam(key) {
             const params = new URLSearchParams(window.location.search);
@@ -1840,11 +1945,38 @@
             Dom.roomListEmpty.classList.add("hidden");
             list.forEach((room) => {
               const item = document.createElement("li");
+              item.className = "room-item";
               const ownerName = getOwnerNicknameFromEntries(room?.entries, room?.ownerId);
               const title = ownerName ? `${ownerName}님의 방` : room?.roomId || "방";
+              const entries = Array.isArray(room?.entries) ? room.entries : [];
+              const totalCount = entries.length;
+              const onlineCount = entries.filter((entry) => entry?.online).length;
+              const autoDeleteDate = Utils.formatDateOnly(room?.autoDeleteAt);
+
+              const main = document.createElement("div");
+              main.className = "room-main";
 
               const label = document.createElement("span");
+              label.className = "room-title-text";
               label.textContent = title;
+              main.appendChild(label);
+
+              const meta = document.createElement("div");
+              meta.className = "room-meta";
+
+              const countChip = document.createElement("span");
+              countChip.className = "room-chip";
+              countChip.textContent = `온라인 ${onlineCount}/${totalCount}`;
+              meta.appendChild(countChip);
+
+              if (autoDeleteDate) {
+                const deleteChip = document.createElement("span");
+                deleteChip.className = "room-chip";
+                deleteChip.textContent = `삭제 예정 ${autoDeleteDate}`;
+                meta.appendChild(deleteChip);
+              }
+
+              main.appendChild(meta);
 
               const enterBtn = document.createElement("button");
               enterBtn.className = "btn tiny-btn";
@@ -1863,7 +1995,7 @@
                 Actions.sendOnline(roomId);
               });
 
-              item.appendChild(label);
+              item.appendChild(main);
               item.appendChild(enterBtn);
               Dom.roomList.appendChild(item);
             });
@@ -2696,6 +2828,58 @@
           };
         })();
 
+        const HomeRefresh = (() => {
+          const INTERVAL_MS = 5000;
+          let timer = null;
+
+          const restartBar = () => {
+            if (!Dom.roomListRefreshBar) return;
+            Dom.roomListRefreshBar.classList.remove("is-animating");
+            void Dom.roomListRefreshBar.offsetWidth;
+            Dom.roomListRefreshBar.classList.add("is-animating");
+          };
+
+          const start = (options = {}) => {
+            const { skipImmediate = false } = options;
+            stop();
+            if (!skipImmediate) {
+              Actions.sendRoomList();
+            }
+            restartBar();
+            timer = setInterval(() => {
+              Actions.sendRoomList();
+              restartBar();
+            }, INTERVAL_MS);
+          };
+
+          const stop = () => {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+            }
+            if (Dom.roomListRefreshBar) {
+              Dom.roomListRefreshBar.classList.remove("is-animating");
+            }
+          };
+
+          const isRunning = () => Boolean(timer);
+
+          return { start, stop, isRunning };
+        })();
+
+        const wireHomeRefresh = () => {
+          const originalEnterRoomView = UI.enterRoomView;
+          const originalExitRoomView = UI.exitRoomView;
+          UI.enterRoomView = (...args) => {
+            HomeRefresh.stop();
+            originalEnterRoomView(...args);
+          };
+          UI.exitRoomView = (options = {}) => {
+            originalExitRoomView(options);
+            HomeRefresh.start({ skipImmediate: true });
+          };
+        };
+
         const Handlers = (() => {
           const handleResultError = (message, payload) => {
             const reason = UI.extractErrorReason(message.payload || payload);
@@ -2846,6 +3030,13 @@
               const rooms = Array.isArray(payload?.rooms) ? payload.rooms : [];
               State.roomList = rooms;
               UI.updateRoomListUI(rooms);
+              if (
+                Dom.chatView &&
+                Dom.chatView.classList.contains("hidden") &&
+                !HomeRefresh.isRunning()
+              ) {
+                HomeRefresh.start({ skipImmediate: true });
+              }
               const current = rooms.find(
                 (room) => room?.roomId && room.roomId === State.session.roomId
               );
@@ -3317,6 +3508,10 @@
         };
 
         Events.bind();
+        wireHomeRefresh();
+        if (Dom.chatView && Dom.chatView.classList.contains("hidden")) {
+          HomeRefresh.start({ skipImmediate: true });
+        }
         window.addEventListener("storage", TabLock.handleStorage);
         window.addEventListener("beforeunload", TabLock.release);
         const lockOk = TabLock.acquire();
