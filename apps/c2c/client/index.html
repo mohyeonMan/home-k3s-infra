@@ -2038,8 +2038,9 @@
             Dom.chatWindow.scrollTop = nextScrollTop;
           };
 
-          const startPreserveWindow = () => {
-            preserveUntil = Date.now() + 600;
+          const startPreserveWindow = (durationMs = 600) => {
+            const targetUntil = Date.now() + durationMs;
+            preserveUntil = Math.max(preserveUntil, targetUntil);
             if (preserveTimer) return;
             preserveTimer = setInterval(() => {
               applyAnchor();
@@ -2066,13 +2067,17 @@
             }
             if (!height) return;
             if (Math.abs(height - lastHeight) >= 1) {
-              captureAnchor();
+              if (!preserveTimer) {
+                captureAnchor();
+              }
               lastHeight = height;
               document.documentElement.style.setProperty(
                 "--app-height",
                 `${Math.round(height)}px`
               );
               startPreserveWindow();
+              applyAnchor();
+            } else if (preserveTimer) {
               applyAnchor();
             }
             if (
@@ -2101,6 +2106,11 @@
                   element: event.target,
                   visualTop: rect.top,
                 };
+                if (!preserveTimer) {
+                  captureAnchor();
+                }
+                startPreserveWindow(900);
+                applyAnchor();
                 lockScroll();
                 setAppHeight();
                 enforceScrollTop();
