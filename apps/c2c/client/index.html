@@ -1928,8 +1928,7 @@
           let scrollEnforceTimer = null;
           let focusAnchor = null;
           let preserveTimer = null;
-          let preserveAnchor = null;
-          let preserveAnchorOffset = 0;
+          let preserveBottomOffset = null;
           let preserveUntil = 0;
 
           const isEditableTarget = (target) => {
@@ -1987,7 +1986,7 @@
               clearInterval(preserveTimer);
               preserveTimer = null;
             }
-            preserveAnchor = null;
+            preserveBottomOffset = null;
             preserveUntil = 0;
           };
 
@@ -1995,59 +1994,50 @@
             clearPreserveTimer();
           };
 
-          const captureAnchor = () => {
+          const captureBottomOffset = () => {
             if (
               !Dom.chatWindow ||
               !Dom.chatView ||
               Dom.chatView.classList.contains("hidden")
             ) {
-              preserveAnchor = null;
+              preserveBottomOffset = null;
               return;
             }
-            const bottom = Dom.chatWindow.scrollTop + Dom.chatWindow.clientHeight;
-            const children = Dom.chatWindow.children;
-            if (!children.length) {
-              preserveAnchor = null;
-              return;
-            }
-            let anchor = null;
-            for (let i = children.length - 1; i >= 0; i -= 1) {
-              const el = children[i];
-              if (el.offsetTop <= bottom) {
-                anchor = el;
-                break;
-              }
-            }
-            if (!anchor) {
-              anchor = children[children.length - 1];
-            }
-            const anchorBottom = anchor.offsetTop + anchor.offsetHeight;
-            preserveAnchor = anchor;
-            preserveAnchorOffset = bottom - anchorBottom;
+            const bottom =
+              Dom.chatWindow.scrollTop + Dom.chatWindow.clientHeight;
+            preserveBottomOffset = Math.max(
+              0,
+              Dom.chatWindow.scrollHeight - bottom
+            );
           };
 
-          const applyAnchor = () => {
-            if (!Dom.chatWindow || !preserveAnchor) return;
-            if (!Dom.chatWindow.contains(preserveAnchor)) return;
-            const anchorBottom = preserveAnchor.offsetTop + preserveAnchor.offsetHeight;
-            const targetBottom = anchorBottom + preserveAnchorOffset;
+          const applyBottomOffset = () => {
+            if (!Dom.chatWindow || preserveBottomOffset === null) return;
             const maxScrollTop = Math.max(
               0,
               Dom.chatWindow.scrollHeight - Dom.chatWindow.clientHeight
             );
             const nextScrollTop = Math.min(
               maxScrollTop,
-              Math.max(0, targetBottom - Dom.chatWindow.clientHeight)
+              Math.max(
+                0,
+                Dom.chatWindow.scrollHeight -
+                  Dom.chatWindow.clientHeight -
+                  preserveBottomOffset
+              )
             );
             Dom.chatWindow.scrollTop = nextScrollTop;
           };
 
-          const startPreserveWindow = (durationMs = 600) => {
+          const startPreserveWindow = (durationMs = 1000) => {
             const targetUntil = Date.now() + durationMs;
             preserveUntil = Math.max(preserveUntil, targetUntil);
+            if (preserveBottomOffset === null) {
+              captureBottomOffset();
+            }
             if (preserveTimer) return;
             preserveTimer = setInterval(() => {
-              applyAnchor();
+              applyBottomOffset();
               if (Date.now() >= preserveUntil) {
                 clearPreserveTimer();
               }
@@ -2073,20 +2063,17 @@
             const prevHeight = lastHeight;
             if (Math.abs(height - lastHeight) >= 1) {
               if (!preserveTimer) {
-                captureAnchor();
+                captureBottomOffset();
               }
               lastHeight = height;
               document.documentElement.style.setProperty(
                 "--app-height",
                 `${Math.round(height)}px`
               );
-              startPreserveWindow();
-              applyAnchor();
-              if (height > prevHeight) {
-                startPreserveWindow(900);
-              }
+              startPreserveWindow(height > prevHeight ? 1200 : 1000);
+              applyBottomOffset();
             } else if (preserveTimer) {
-              applyAnchor();
+              applyBottomOffset();
             }
             if (
               prevBottom === null ||
@@ -2115,10 +2102,10 @@
                   visualTop: rect.top,
                 };
                 if (!preserveTimer) {
-                  captureAnchor();
+                  captureBottomOffset();
                 }
-                startPreserveWindow(900);
-                applyAnchor();
+                startPreserveWindow(1200);
+                applyBottomOffset();
                 lockScroll();
                 setAppHeight();
                 enforceScrollTop();
@@ -2129,10 +2116,10 @@
                 const active = document.activeElement;
                 if (!isEditableTarget(active)) {
                   if (!preserveTimer) {
-                    captureAnchor();
+                    captureBottomOffset();
                   }
-                  startPreserveWindow(900);
-                  applyAnchor();
+                  startPreserveWindow(1200);
+                  applyBottomOffset();
                   unlockScroll();
                   focusAnchor = null;
                 }
@@ -3176,6 +3163,11 @@
                 UI.appendSystemMessage("방에 먼저 입장하세요.");
                 return;
               }
+              const shouldStick =
+                Dom.chatWindow.scrollHeight -
+                  Dom.chatWindow.scrollTop -
+                  Dom.chatWindow.clientHeight <=
+                24;
               const payload = {
                 roomId: State.session.roomId,
                 message: rawMessage,
@@ -3189,8 +3181,10 @@
                   Date.now(),
                   State.session.userId
                 );
-                Viewport.cancelPreserve();
-                UI.scrollToBottom();
+                if (shouldStick) {
+                  Viewport.cancelPreserve();
+                  UI.scrollToBottom();
+                }
                 Dom.chatInput.value = "";
                 autoResizeChatInput();
                 Dom.chatInput.focus();
