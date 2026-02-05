@@ -1526,11 +1526,6 @@
               State.session.nickname && State.session.roomId
                 ? `연결됨: ${State.session.nickname}`
                 : Dom.roomMeta.textContent || "연결됨";
-            const autoDeleteAt = Utils.formatDateTime(State.session.autoDeleteAt);
-            if (autoDeleteAt) {
-              Dom.roomMeta.textContent = `${base} · 자동 삭제 ${autoDeleteAt}`;
-              return;
-            }
             Dom.roomMeta.textContent = base;
           };
 
