@@ -1143,6 +1143,10 @@
             requestId: "",
             pending: false,
           },
+          offline: {
+            requestId: "",
+            pending: false,
+          },
           reconnect: {
             pending: false,
             mode: "none",
@@ -1175,6 +1179,8 @@
               autoDeleteAt: null,
               entries: [],
             };
+            this.offline.requestId = "";
+            this.offline.pending = false;
             this.reconnect.pending = false;
             this.reconnect.mode = "none";
             this.pendingJoinRequest = null;
@@ -2726,7 +2732,7 @@
 
           const sendOffline = async (roomId) => {
             if (!roomId) return;
-            WsClient.sendCommand("OFFLINE", { roomId });
+            return WsClient.sendCommand("OFFLINE", { roomId });
           };
 
           const sendLeave = (roomId) => {
@@ -2782,7 +2788,12 @@
 
           const exitRoom = (keepUserId = true) => {
             if (State.session.roomId) {
-              Actions.sendOffline(State.session.roomId);
+              const requestId = Actions.sendOffline(State.session.roomId);
+              State.offline.pending = Boolean(requestId);
+              State.offline.requestId = requestId || "";
+              if (State.offline.pending) {
+                return;
+              }
             }
             State.reconnect.pending = false;
             State.clearSession(keepUserId);
@@ -2915,6 +2926,13 @@
               Actions.sendRoomList();
               return;
             }
+            if (message.action === "OFFLINE") {
+              State.offline.pending = false;
+              State.offline.requestId = "";
+              UI.openSystemModal("오프라인 전환에 실패했습니다.");
+              Actions.sendRoomList();
+              return;
+            }
           };
 
           const handleAck = (message) => {
@@ -2983,6 +3001,19 @@
               if (State.leave.pending) {
                 State.leave.pending = false;
                 State.leave.requestId = "";
+                State.reconnect.pending = false;
+                State.clearSession(true);
+                Utils.setStoredSession("", "");
+                UI.exitRoomView();
+              }
+              Actions.sendRoomList();
+              return;
+            }
+
+            if (message.action === "OFFLINE") {
+              if (State.offline.pending) {
+                State.offline.pending = false;
+                State.offline.requestId = "";
                 State.reconnect.pending = false;
                 State.clearSession(true);
                 Utils.setStoredSession("", "");
