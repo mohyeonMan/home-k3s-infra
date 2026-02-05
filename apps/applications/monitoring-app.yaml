@@ -19,6 +19,9 @@ spec:
             passwordKey: admin-password
         alertmanager:
           enabled: true
+        kubelet:
+          serviceMonitor:
+            honorTimestamps: false
   - repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
     targetRevision: main
     path: apps/monitoring
