@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
-    targetRevision: HEAD
+    targetRevision: main
     path: apps/c2c
   destination:
     server: https://kubernetes.default.svc
