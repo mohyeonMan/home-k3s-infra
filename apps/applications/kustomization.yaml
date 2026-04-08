@@ -4,4 +4,3 @@ resources:
   - sealed-secrets-app.yaml
   - traefik-app.yaml
   - monitoring-app.yaml
-  - c2c-app.yaml
