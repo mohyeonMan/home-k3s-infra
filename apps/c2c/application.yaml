@@ -1,19 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: traefik-config
+  name: c2c-app
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
     targetRevision: main
-    path: apps/traefik
+    path: apps/c2c
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: c2c
   syncPolicy:
     automated:
+      prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
