@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kopic-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
+    targetRevision: main
+    path: apps/kopic
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kopic
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

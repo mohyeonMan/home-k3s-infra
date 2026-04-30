@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kopic-ge
+  namespace: kopic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kopic-ge
+  template:
+    metadata:
+      labels:
+        app: kopic-ge
+    spec:
+      containers:
+      - name: kopic-ge
+        image: ghcr.io/mohyeonman/kopic-ge-k3s
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            cpu: "1"
+            memory: 2Gi
+        env:
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq.rabbitmq.svc.cluster.local
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-username
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-password
+        - name: KOPIC_NODE_ID
+          value: ge-local

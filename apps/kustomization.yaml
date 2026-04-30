@@ -5,3 +5,4 @@ resources:
   - traefik/application.yaml
   - monitoring/application.yaml
   - rabbitmq/application.yaml
+  - kopic/application.yaml
