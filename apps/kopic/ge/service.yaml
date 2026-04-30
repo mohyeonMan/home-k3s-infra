@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kopic-ge-headless
+  namespace: kopic
+  labels:
+    app: kopic-ge
+spec:
+  clusterIP: None
+  selector:
+    app: kopic-ge
+  ports:
+  - name: app
+    port: 8080
+    targetPort: 8080
