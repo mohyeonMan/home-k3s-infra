@@ -4,3 +4,4 @@ resources:
   - sealed-secrets/application.yaml
   - traefik/application.yaml
   - monitoring/application.yaml
+  - rabbitmq/application.yaml
