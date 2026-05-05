@@ -53,7 +53,7 @@ spec:
       - "--entrypoints.redisinsight.address=:5540"
       - "--entrypoints.rabbitmq.address=:15672"
 
-      - "--certificatesresolvers.letsencrypt.acme.email=본인메일@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=qkrwlgns0510@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
