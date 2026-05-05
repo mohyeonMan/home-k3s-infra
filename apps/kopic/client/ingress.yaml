@@ -9,14 +9,17 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - jhhomehub.gonetis.com
   rules:
-  - host: jhhomehub.gonetis.com
-    http:
-      paths:
-      - path: /kopic
-        pathType: Prefix
-        backend:
-          service:
-            name: kopic-client
-            port:
-              number: 80
+    - host: jhhomehub.gonetis.com
+      http:
+        paths:
+          - path: /kopic
+            pathType: Prefix
+            backend:
+              service:
+                name: kopic-client
+                port:
+                  number: 80
