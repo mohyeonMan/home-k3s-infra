@@ -43,6 +43,7 @@ spec:
         exposedPort: 15672
         protocol: TCP
 
+    
     additionalArguments:
       - "--entrypoints.argo.address=:8081"
       - "--entrypoints.grafana.address=:3000"
@@ -51,8 +52,9 @@ spec:
 
       - "--certificatesresolvers.letsencrypt.acme.email=qkrwlgns0510@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+    
     persistence:
       enabled: true
       name: data
