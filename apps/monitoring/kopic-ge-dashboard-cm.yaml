@@ -8,130 +8,646 @@ metadata:
 data:
   kopic-ge-overview.json: |-
     {
-      "title": "Kopic GE Overview",
+      "title": "Kopic GE Control Tower",
+      "tags": ["kopic", "ge", "operations"],
       "timezone": "browser",
       "schemaVersion": 39,
-      "version": 1,
+      "version": 4,
       "refresh": "10s",
       "editable": true,
+      "graphTooltip": 2,
       "panels": [
         {
           "id": 1,
-          "type": "timeseries",
+          "type": "stat",
           "title": "Active Rooms",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 20 },
+                  { "color": "red", "value": 50 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "targets": [
-            {
-              "expr": "sum by (room_type) (kopic_ge_rooms_active)",
-              "legendFormat": "{{room_type}}",
-              "refId": "A"
-            }
+            { "expr": "sum(kopic_ge_rooms_active) or on() vector(0)", "refId": "A" }
           ]
         },
         {
           "id": 2,
-          "type": "timeseries",
+          "type": "stat",
           "title": "Participants",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 60 },
+                  { "color": "red", "value": 120 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "targets": [
-            {
-              "expr": "sum by (room_type) (kopic_ge_participants_total)",
-              "legendFormat": "{{room_type}}",
-              "refId": "A"
-            }
+            { "expr": "sum(kopic_ge_participants) or on() vector(0)", "refId": "A" }
           ]
         },
         {
           "id": 3,
-          "type": "timeseries",
-          "title": "Inbound/Outbound Events per Second (1m)",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-          "targets": [
-            {
-              "expr": "sum(rate(kopic_ge_inbound_events_total[1m]))",
-              "legendFormat": "inbound",
-              "refId": "A"
+          "type": "stat",
+          "title": "Inbound TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 10 },
+                  { "color": "red", "value": 30 }
+                ]
+              }
             },
-            {
-              "expr": "sum(rate(kopic_ge_outbound_events_total[1m]))",
-              "legendFormat": "outbound",
-              "refId": "B"
-            }
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(rate(kopic_ge_inbound_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
           "id": 4,
-          "type": "timeseries",
-          "title": "Inbound Rejected (5m Increase)",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "type": "stat",
+          "title": "Outbound TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 10 },
+                  { "color": "red", "value": 30 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "targets": [
-            {
-              "expr": "sum by (reason) (increase(kopic_ge_inbound_rejected_total[5m]))",
-              "legendFormat": "{{reason}}",
-              "refId": "A"
-            }
+            { "expr": "sum(rate(kopic_ge_outbound_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
           "id": 5,
-          "type": "timeseries",
-          "title": "Room Submit Rate (5m)",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+          "type": "stat",
+          "title": "Inbound Reject Ratio",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 2,
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 0.01 },
+                  { "color": "red", "value": 0.03 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "targets": [
             {
-              "expr": "sum by (result, reason) (rate(kopic_ge_room_submit_total[5m]))",
-              "legendFormat": "{{result}}/{{reason}}",
+              "expr": "(sum(rate(kopic_ge_inbound_rejected_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_inbound_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
               "refId": "A"
             }
           ]
         },
         {
           "id": 6,
-          "type": "timeseries",
-          "title": "Room Job Avg Duration (ms, 1m)",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+          "type": "stat",
+          "title": "Publish Failure TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 3,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 0.2 },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "targets": [
-            {
-              "expr": "1000 * sum(rate(kopic_ge_room_job_duration_seconds_sum[1m])) / clamp_min(sum(rate(kopic_ge_room_job_duration_seconds_count[1m])), 1e-9)",
-              "legendFormat": "avg",
-              "refId": "A"
-            }
+            { "expr": "sum(rate(kopic_ge_outbound_publish_failures_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
           "id": 7,
           "type": "timeseries",
-          "title": "Timer Scheduled/Cancelled (5m)",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "title": "Active Rooms by Type",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            { "expr": "sum by (room_type) (kopic_ge_rooms_active)", "legendFormat": "{{room_type}}", "refId": "A" }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Participants by Type",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            { "expr": "sum by (room_type) (kopic_ge_participants)", "legendFormat": "{{room_type}}", "refId": "A" }
+          ]
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Avg Participants per Active Room",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "min": 0, "decimals": 2, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
           "targets": [
             {
-              "expr": "sum(increase(kopic_ge_timer_scheduled_total[5m]))",
+              "expr": "(sum(kopic_ge_participants) / clamp_min(sum(kopic_ge_rooms_active), 1e-9)) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "type": "timeseries",
+          "title": "Inbound vs Outbound TPS",
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 13 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(kopic_ge_inbound_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "inbound",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(kopic_ge_outbound_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "outbound",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "type": "timeseries",
+          "title": "Inbound TPS by Event Code (Top 10)",
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 13 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 1 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_inbound_events_total[$__rate_interval])))",
+              "legendFormat": "event={{event_code}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "type": "timeseries",
+          "title": "Outbound TPS by Event Code (Top 10)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 22 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 1 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_outbound_events_total[$__rate_interval])))",
+              "legendFormat": "event={{event_code}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "type": "timeseries",
+          "title": "Room Submit Rate by Result",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 22 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "min": 0,
+              "custom": { "stacking": { "mode": "normal", "group": "A" } }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (result) (rate(kopic_ge_room_submit_total[$__rate_interval]))",
+              "legendFormat": "{{result}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "type": "timeseries",
+          "title": "Room Submit Rejected by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 22 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_room_submit_total{result=\"rejected\"}[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "type": "timeseries",
+          "title": "Timer Scheduled vs Cancelled (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(increase(kopic_ge_timer_scheduled_total[10m])) or on() vector(0)",
               "legendFormat": "scheduled",
               "refId": "A"
             },
             {
-              "expr": "sum(increase(kopic_ge_timer_cancelled_total[5m]))",
+              "expr": "sum(increase(kopic_ge_timer_cancelled_total[10m])) or on() vector(0)",
               "legendFormat": "cancelled",
               "refId": "B"
             }
           ]
         },
         {
-          "id": 8,
+          "id": 16,
           "type": "timeseries",
-          "title": "Outbound Publish Failures (5m Increase)",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "title": "Game Starts by RoomType/Trigger (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ge_outbound_publish_failures_total[5m]))",
+              "expr": "sum by (room_type, trigger) (increase(kopic_ge_game_start_total[10m]))",
+              "legendFormat": "{{room_type}}/{{trigger}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "type": "timeseries",
+          "title": "Turn End by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_turn_end_total[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "type": "timeseries",
+          "title": "Inbound Rejected by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_inbound_rejected_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "type": "timeseries",
+          "title": "Outbound Publish Failures by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_outbound_publish_failures_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 20,
+          "type": "timeseries",
+          "title": "Room Job Avg Duration (ms)",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "ms", "min": 0, "decimals": 2, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            {
+              "expr": "(1000 * sum(rate(kopic_ge_room_job_duration_seconds_sum[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_room_job_duration_seconds_count[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "type": "stat",
+          "title": "GE CPU Usage (%)",
+          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 60 },
+                  { "color": "red", "value": 85 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "(100 * avg(process_cpu_usage{pod=~\"kopic-ge.*\"})) or (100 * avg(process_cpu_usage{job=~\"kopic-ge.*\"})) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "type": "stat",
+          "title": "GE RSS Memory",
+          "gridPos": { "h": 8, "w": 6, "x": 6, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1610612736 },
+                  { "color": "red", "value": 2415919104 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "sum(process_resident_memory_bytes{pod=~\"kopic-ge.*\"}) or sum(process_resident_memory_bytes{job=~\"kopic-ge.*\"}) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "type": "stat",
+          "title": "GE Heap Usage (%)",
+          "gridPos": { "h": 8, "w": 6, "x": 12, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 70 },
+                  { "color": "red", "value": 90 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ge.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ge.*\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ge.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ge.*\"}, 0)), 1)) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "type": "timeseries",
+          "title": "GE Heap Used vs Max",
+          "gridPos": { "h": 8, "w": 6, "x": 18, "y": 49 },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ge.*\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ge.*\"}) or on() vector(0)",
+              "legendFormat": "heap_used",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ge.*\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ge.*\"}, 0)) or on() vector(0)",
+              "legendFormat": "heap_max",
+              "refId": "B"
             }
           ]
         }
       ],
       "time": {
-        "from": "now-30m",
+        "from": "now-3h",
         "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
       }
     }
