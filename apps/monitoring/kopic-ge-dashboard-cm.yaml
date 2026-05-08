@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kopic-ge-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  kopic-ge-overview.json: |-
+    {
+      "title": "Kopic GE Overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "editable": true,
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Active Rooms",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum by (room_type) (kopic_ge_rooms_active)",
+              "legendFormat": "{{room_type}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Participants",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum by (room_type) (kopic_ge_participants_total)",
+              "legendFormat": "{{room_type}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Inbound/Outbound Events per Second (1m)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "expr": "sum(rate(kopic_ge_inbound_events_total[1m]))",
+              "legendFormat": "inbound",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(kopic_ge_outbound_events_total[1m]))",
+              "legendFormat": "outbound",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Inbound Rejected (5m Increase)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_inbound_rejected_total[5m]))",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Room Submit Rate (5m)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+          "targets": [
+            {
+              "expr": "sum by (result, reason) (rate(kopic_ge_room_submit_total[5m]))",
+              "legendFormat": "{{result}}/{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Room Job Avg Duration (ms, 1m)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+          "targets": [
+            {
+              "expr": "1000 * sum(rate(kopic_ge_room_job_duration_seconds_sum[1m])) / clamp_min(sum(rate(kopic_ge_room_job_duration_seconds_count[1m])), 1e-9)",
+              "legendFormat": "avg",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Timer Scheduled/Cancelled (5m)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "targets": [
+            {
+              "expr": "sum(increase(kopic_ge_timer_scheduled_total[5m]))",
+              "legendFormat": "scheduled",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(increase(kopic_ge_timer_cancelled_total[5m]))",
+              "legendFormat": "cancelled",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Outbound Publish Failures (5m Increase)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ge_outbound_publish_failures_total[5m]))",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      }
+    }

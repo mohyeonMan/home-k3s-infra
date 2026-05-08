@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kopic-ge
+  namespace: kopic
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: kopic-ge
+  namespaceSelector:
+    matchNames:
+      - kopic
+  endpoints:
+    - port: app
+      path: /actuator/prometheus
+      interval: 30s
