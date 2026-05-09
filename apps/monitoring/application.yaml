@@ -17,6 +17,16 @@ spec:
             existingSecret: monitoring-grafana
             userKey: admin-user
             passwordKey: admin-password
+          additionalDataSources:
+          - name: Loki
+            uid: loki
+            type: loki
+            access: proxy
+            url: http://loki-gateway.logging.svc.cluster.local
+            isDefault: false
+            editable: true
+            jsonData:
+              maxLines: 1000
         alertmanager:
           enabled: true
         kubelet:
