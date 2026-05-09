@@ -6,4 +6,4 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-client
-    newTag: sha-fa11be7
+    newTag: sha-b506cb2
