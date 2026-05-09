@@ -1,0 +1,675 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kopic-ws-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  kopic-ws-overview.json: |-
+    {
+      "title": "Kopic WS Control Tower",
+      "tags": ["kopic", "ws", "operations"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "editable": true,
+      "graphTooltip": 2,
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Active Sessions",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 100 },
+                  { "color": "red", "value": 300 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(kopic_ws_sessions_active) or on() vector(0)", "refId": "A" }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Sessions In Room",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 80 },
+                  { "color": "red", "value": 250 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(kopic_ws_sessions_in_room) or on() vector(0)", "refId": "A" }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Client Inbound TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 20 },
+                  { "color": "red", "value": 60 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "WS->GE TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 20 },
+                  { "color": "red", "value": 60 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "GE->Client TPS",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 20 },
+                  { "color": "red", "value": 60 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            { "expr": "sum(rate(kopic_ws_to_client_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "Dispatch Avg (ms)",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 30 },
+                  { "color": "red", "value": 100 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "(1000 * sum(rate(kopic_ws_dispatch_duration_seconds_sum[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_dispatch_duration_seconds_count[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Session Capacity",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            { "expr": "sum(kopic_ws_sessions_active) or on() vector(0)", "legendFormat": "active", "refId": "A" },
+            { "expr": "sum(kopic_ws_sessions_in_room) or on() vector(0)", "legendFormat": "in_room", "refId": "B" }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Connection Lifecycle (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (event) (increase(kopic_ws_connection_total[10m])) or on() vector(0)",
+              "legendFormat": "{{event}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Handshake Result Rate",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (result) (rate(kopic_ws_handshake_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "{{result}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "type": "timeseries",
+          "title": "Traffic Pipeline TPS",
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 13 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "client_inbound",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "ws_to_ge",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(kopic_ws_ge_inbound_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "ge_inbound",
+              "refId": "C"
+            },
+            {
+              "expr": "sum(rate(kopic_ws_to_client_events_total[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "to_client",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "type": "timeseries",
+          "title": "Client Inbound TPS by Event Code (Top 10)",
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 13 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 1 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_client_inbound_events_total[$__rate_interval])))",
+              "legendFormat": "event={{event_code}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "type": "timeseries",
+          "title": "WS->GE Publish Failures by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 22 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ws_to_ge_publish_failures_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "type": "timeseries",
+          "title": "GE Inbound Reject by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 22 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ws_ge_inbound_rejected_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "type": "timeseries",
+          "title": "To-Client Send Failure by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 22 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ws_to_client_send_failures_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "type": "timeseries",
+          "title": "Client Inbound Reject by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ws_client_inbound_rejected_total[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "type": "timeseries",
+          "title": "Handshake Rejected by Reason (10m)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (reason) (increase(kopic_ws_handshake_total{result=\"rejected\"}[10m])) or on() vector(0)",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "type": "timeseries",
+          "title": "Failure Ratios",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 31 },
+          "fieldConfig": {
+            "defaults": { "unit": "percentunit", "min": 0, "max": 1, "decimals": 3, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "(sum(rate(kopic_ws_client_inbound_rejected_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "legendFormat": "client_reject_ratio",
+              "refId": "A"
+            },
+            {
+              "expr": "(sum(rate(kopic_ws_ge_inbound_rejected_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_ge_inbound_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "legendFormat": "ge_reject_ratio",
+              "refId": "B"
+            },
+            {
+              "expr": "(sum(rate(kopic_ws_to_ge_publish_failures_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "legendFormat": "ws_to_ge_fail_ratio",
+              "refId": "C"
+            },
+            {
+              "expr": "(sum(rate(kopic_ws_to_client_send_failures_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_client_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "legendFormat": "to_client_fail_ratio",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "type": "timeseries",
+          "title": "GE Inbound TPS by Event Code (Top 10)",
+          "gridPos": { "h": 9, "w": 8, "x": 0, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 1 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_ge_inbound_events_total[$__rate_interval])))",
+              "legendFormat": "event={{event_code}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "type": "timeseries",
+          "title": "To-Client TPS by Event Code (Top 10)",
+          "gridPos": { "h": 9, "w": 8, "x": 8, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 1 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_to_client_events_total[$__rate_interval])))",
+              "legendFormat": "event={{event_code}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 20,
+          "type": "timeseries",
+          "title": "Dispatch Rate by Handler",
+          "gridPos": { "h": 9, "w": 8, "x": 16, "y": 40 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (handler) (rate(kopic_ws_dispatch_duration_seconds_count[$__rate_interval])) or on() vector(0)",
+              "legendFormat": "{{handler}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "type": "stat",
+          "title": "WS CPU Usage (%)",
+          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 60 },
+                  { "color": "red", "value": 85 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "(100 * avg(process_cpu_usage{pod=~\"kopic-ws.*\"})) or (100 * avg(process_cpu_usage{job=~\"kopic-ws.*\"})) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "type": "stat",
+          "title": "WS RSS Memory",
+          "gridPos": { "h": 8, "w": 6, "x": 6, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1610612736 },
+                  { "color": "red", "value": 2415919104 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "sum(process_resident_memory_bytes{pod=~\"kopic-ws.*\"}) or sum(process_resident_memory_bytes{job=~\"kopic-ws.*\"}) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "type": "stat",
+          "title": "WS Heap Usage (%)",
+          "gridPos": { "h": 8, "w": 6, "x": 12, "y": 49 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 70 },
+                  { "color": "red", "value": 90 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ws.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ws.*\"}, 0)), 1)) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "type": "timeseries",
+          "title": "WS Heap Used vs Max",
+          "gridPos": { "h": 8, "w": 6, "x": 18, "y": 49 },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes", "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ws.*\"}) or on() vector(0)",
+              "legendFormat": "heap_used",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ws.*\"}, 0)) or on() vector(0)",
+              "legendFormat": "heap_max",
+              "refId": "B"
+            }
+          ]
+        }
+      ],
+      "time": {
+        "from": "now-3h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+      }
+    }
