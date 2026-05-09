@@ -151,7 +151,7 @@ spec:
               loki.process "pod_logs" {
                 stage.static_labels {
                   values = {
-                    cluster = "home-k3s"
+                    cluster = "home-k3s",
                   }
                 }
 
