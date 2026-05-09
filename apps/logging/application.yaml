@@ -84,6 +84,8 @@ spec:
           enabled: false
         gateway:
           enabled: true
+        test:
+          enabled: false
         lokiCanary:
           enabled: false
         monitoring:
