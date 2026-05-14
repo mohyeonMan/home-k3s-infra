@@ -1,21 +1,20 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: kopic-ge
-  namespace: kopic
+  name: kopic-dev-ge
 spec:
-  serviceName: kopic-ge-headless
+  serviceName: kopic-dev-ge-headless
   replicas: 1
   selector:
     matchLabels:
-      app: kopic-ge
+      app: kopic-dev-ge
   template:
     metadata:
       labels:
-        app: kopic-ge
+        app: kopic-dev-ge
     spec:
       containers:
-      - name: kopic-ge
+      - name: kopic-dev-ge
         image: ghcr.io/mohyeonman/kopic-ge-k3s
         resources:
           requests:
@@ -40,3 +39,9 @@ spec:
               key: rabbitmq-password
         - name: KOPIC_NODE_ID
           value: ge-local
+        - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
+          value: kopic-dev.ge.event.
+        - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX
+          value: kopic-dev.ge.route.
+        - name: KOPIC_RABBIT_OUTBOUND_ROUTING_KEY_PREFIX
+          value: kopic-dev.ws.route.

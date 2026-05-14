@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kopic-client
-  namespace: kopic
+  name: kopic-dev-client
   labels:
-    app: kopic-client
+    app: kopic-dev-client
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kopic-client
+      app: kopic-dev-client
   template:
     metadata:
       labels:
-        app: kopic-client
+        app: kopic-dev-client
     spec:
       containers:
-      - name: kopic-client
+      - name: kopic-dev-client
         image: ghcr.io/mohyeonman/kopic-client
         ports:
         - containerPort: 80

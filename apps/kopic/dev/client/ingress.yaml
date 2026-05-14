@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kopic-dev-client-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - jhhomehub.gonetis.com
+  rules:
+    - host: jhhomehub.gonetis.com
+      http:
+        paths:
+          - path: /kopic-dev
+            pathType: Prefix
+            backend:
+              service:
+                name: kopic-dev-client
+                port:
+                  number: 80

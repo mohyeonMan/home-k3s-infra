@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kopic-dev-ws-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: jhhomehub.gonetis.com
+    http:
+      paths:
+      - path: /kopic-dev/ws
+        pathType: Prefix
+        backend:
+          service:
+            name: kopic-dev-ws
+            port:
+              number: 8080

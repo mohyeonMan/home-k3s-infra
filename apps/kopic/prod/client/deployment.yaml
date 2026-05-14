@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kopic-client
+  labels:
+    app: kopic-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kopic-client
+  template:
+    metadata:
+      labels:
+        app: kopic-client
+    spec:
+      containers:
+      - name: kopic-client
+        image: ghcr.io/mohyeonman/kopic-client
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi

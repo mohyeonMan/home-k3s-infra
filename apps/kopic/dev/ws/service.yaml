@@ -1,14 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kopic-ws
-  namespace: kopic
+  name: kopic-dev-ws
   labels:
-    app: kopic-ws
+    app: kopic-dev-ws
 spec:
   type: ClusterIP
   selector:
-    app: kopic-ws
+    app: kopic-dev-ws
   ports:
   - name: http
     port: 8080
@@ -17,14 +16,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kopic-ws-headless
-  namespace: kopic
+  name: kopic-dev-ws-headless
   labels:
-    app: kopic-ws
+    app: kopic-dev-ws
 spec:
   clusterIP: None
   selector:
-    app: kopic-ws
+    app: kopic-dev-ws
   ports:
   - name: http
     port: 8080

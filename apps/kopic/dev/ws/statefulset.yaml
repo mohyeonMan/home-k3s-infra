@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kopic-dev-ws
+spec:
+  serviceName: kopic-dev-ws-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kopic-dev-ws
+  template:
+    metadata:
+      labels:
+        app: kopic-dev-ws
+    spec:
+      containers:
+      - name: kopic-dev-ws
+        image: ghcr.io/mohyeonman/kopic-ws-k3s
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            memory: 3Gi
+        env:
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq.rabbitmq.svc.cluster.local
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-username
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-password
+        - name: KOPIC_NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KOPIC_WS_ENDPOINT
+          value: /kopic-dev/ws
+        - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
+          value: kopic-dev.ws.event.
+        - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX
+          value: kopic-dev.ws.route.
+        - name: KOPIC_RABBIT_OUTBOUND_ROUTING_KEY_PREFIX
+          value: kopic-dev.ge.route.

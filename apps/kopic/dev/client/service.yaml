@@ -1,14 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kopic-client
-  namespace: kopic
+  name: kopic-dev-client
   labels:
-    app: kopic-client
+    app: kopic-dev-client
 spec:
   type: ClusterIP
   selector:
-    app: kopic-client
+    app: kopic-dev-client
   ports:
   - name: http
     port: 80

@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - service.yaml
+  - statefulset.yaml
+  - servicemonitor.yaml
+  - ingress.yaml
+images:
+  - name: ghcr.io/mohyeonman/kopic-ws-k3s
+    newTag: sha-4e0663c

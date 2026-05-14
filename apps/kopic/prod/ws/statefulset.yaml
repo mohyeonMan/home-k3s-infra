@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kopic-ws
-  namespace: kopic
 spec:
   serviceName: kopic-ws-headless
   replicas: 1
