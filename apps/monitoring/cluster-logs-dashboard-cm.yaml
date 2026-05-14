@@ -34,11 +34,23 @@ data:
             "current": { "selected": true, "text": "All", "value": "$__all" }
           },
           {
+            "name": "environment",
+            "label": "Environment",
+            "type": "custom",
+            "query": "prod : kopic-(client|ge|ws).*, dev : kopic-dev-.*, all : .*",
+            "options": [
+              { "selected": true, "text": "prod", "value": "kopic-(client|ge|ws).*" },
+              { "selected": false, "text": "dev", "value": "kopic-dev-.*" },
+              { "selected": false, "text": "all", "value": ".*" }
+            ],
+            "current": { "selected": true, "text": "prod", "value": "kopic-(client|ge|ws).*" }
+          },
+          {
             "name": "pod",
             "label": "Pod",
             "type": "query",
             "datasource": { "type": "loki", "uid": "loki" },
-            "query": "label_values({namespace=~\"${namespace:regex}\"}, pod)",
+            "query": "label_values({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\"}, pod)",
             "refresh": 2,
             "includeAll": true,
             "multi": true,
@@ -49,7 +61,7 @@ data:
             "label": "Container",
             "type": "query",
             "datasource": { "type": "loki", "uid": "loki" },
-            "query": "label_values({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\"}, container)",
+            "query": "label_values({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\"}, container)",
             "refresh": 2,
             "includeAll": true,
             "multi": true,
@@ -74,7 +86,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval]))"
+              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval]))"
             }
           ],
           "fieldConfig": {
@@ -109,7 +121,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[$__interval]))"
+              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[$__interval]))"
             }
           ],
           "fieldConfig": {
@@ -144,7 +156,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[$__interval])) / clamp_min(sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval])), 1e-9)"
+              "expr": "sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[$__interval])) / clamp_min(sum(rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval])), 1e-9)"
             }
           ],
           "fieldConfig": {
@@ -181,7 +193,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "sum(count(count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[5m])) by (pod))"
+              "expr": "sum(count(count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[5m])) by (pod))"
             }
           ],
           "fieldConfig": {
@@ -216,7 +228,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "sum by (namespace) (rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval]))"
+              "expr": "sum by (namespace) (rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval]))"
             }
           ],
           "fieldConfig": {
@@ -244,7 +256,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "topk(10, sum by (namespace, pod) (rate({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval])))"
+              "expr": "topk(10, sum by (namespace, pod) (rate({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[$__interval])))"
             }
           ],
           "fieldConfig": {
@@ -272,7 +284,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "topk(12, sum by (namespace, pod, container) (count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[30m])))"
+              "expr": "topk(12, sum by (namespace, pod, container) (count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"}[30m])))"
             }
           ],
           "fieldConfig": {
@@ -304,7 +316,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "topk(12, sum by (namespace, pod, container) (count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[30m])))"
+              "expr": "topk(12, sum by (namespace, pod, container) (count_over_time({namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\"[30m])))"
             }
           ],
           "fieldConfig": {
@@ -336,7 +348,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "{namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"${search}\""
+              "expr": "{namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"${search}\""
             }
           ],
           "options": {
@@ -357,7 +369,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "{namespace=~\"${namespace:regex}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\""
+              "expr": "{namespace=~\"${namespace:regex}\",pod=~\"${environment:raw}\",pod=~\"${pod:regex}\",container=~\"${container:regex}\"} |~ \"(?i)(error|exception|panic|fatal|failed|timeout)\""
             }
           ],
           "options": {
