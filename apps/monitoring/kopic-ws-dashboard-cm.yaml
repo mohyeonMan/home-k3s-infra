@@ -16,6 +16,25 @@ data:
       "refresh": "10s",
       "editable": true,
       "graphTooltip": 2,
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": true, "text": "prod", "value": "kopic-ws.*" },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Environment",
+            "multi": false,
+            "name": "podFilter",
+            "options": [
+              { "selected": true, "text": "prod", "value": "kopic-ws.*" },
+              { "selected": false, "text": "dev", "value": "kopic-dev-ws.*" },
+              { "selected": false, "text": "all", "value": "kopic(-dev)?-ws.*" }
+            ],
+            "query": "prod : kopic-ws.*, dev : kopic-dev-ws.*, all : kopic(-dev)?-ws.*",
+            "type": "custom"
+          }
+        ]
+      },
       "panels": [
         {
           "id": 1,
@@ -45,7 +64,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(kopic_ws_sessions_active) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(kopic_ws_sessions_active{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -76,7 +95,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(kopic_ws_sessions_in_room) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(kopic_ws_sessions_in_room{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -108,7 +127,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ws_client_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -140,7 +159,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ws_to_ge_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -172,7 +191,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ws_to_client_events_total[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ws_to_client_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -205,7 +224,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(1000 * sum(rate(kopic_ws_dispatch_duration_seconds_sum[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_dispatch_duration_seconds_count[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(1000 * sum(rate(kopic_ws_dispatch_duration_seconds_sum{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_dispatch_duration_seconds_count{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -224,8 +243,8 @@ data:
             "tooltip": { "mode": "single", "sort": "none" }
           },
           "targets": [
-            { "expr": "sum(kopic_ws_sessions_active) or on() vector(0)", "legendFormat": "active", "refId": "A" },
-            { "expr": "sum(kopic_ws_sessions_in_room) or on() vector(0)", "legendFormat": "in_room", "refId": "B" }
+            { "expr": "sum(kopic_ws_sessions_active{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "legendFormat": "active", "refId": "A" },
+            { "expr": "sum(kopic_ws_sessions_in_room{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "legendFormat": "in_room", "refId": "B" }
           ]
         },
         {
@@ -243,7 +262,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (event) (increase(kopic_ws_connection_total[10m])) or on() vector(0)",
+              "expr": "sum by (event) (increase(kopic_ws_connection_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{event}}",
               "refId": "A"
             }
@@ -264,7 +283,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (result) (rate(kopic_ws_handshake_total[$__rate_interval])) or on() vector(0)",
+              "expr": "sum by (result) (rate(kopic_ws_handshake_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "{{result}}",
               "refId": "A"
             }
@@ -285,22 +304,22 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ws_client_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "client_inbound",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ws_to_ge_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "ws_to_ge",
               "refId": "B"
             },
             {
-              "expr": "sum(rate(kopic_ws_ge_inbound_events_total[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ws_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "ge_inbound",
               "refId": "C"
             },
             {
-              "expr": "sum(rate(kopic_ws_to_client_events_total[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ws_to_client_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "to_client",
               "refId": "D"
             }
@@ -321,7 +340,7 @@ data:
           },
           "targets": [
             {
-              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_client_inbound_events_total[$__rate_interval])))",
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_client_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])))",
               "legendFormat": "event={{event_code}}",
               "refId": "A"
             }
@@ -342,7 +361,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ws_to_ge_publish_failures_total[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ws_to_ge_publish_failures_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -363,7 +382,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ws_ge_inbound_rejected_total[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ws_ge_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -384,7 +403,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ws_to_client_send_failures_total[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ws_to_client_send_failures_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -405,7 +424,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ws_client_inbound_rejected_total[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ws_client_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -426,7 +445,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ws_handshake_total{result=\"rejected\"}[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ws_handshake_total{pod=~\"${podFilter:raw}\",result=\"rejected\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -447,22 +466,22 @@ data:
           },
           "targets": [
             {
-              "expr": "(sum(rate(kopic_ws_client_inbound_rejected_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_client_inbound_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(sum(rate(kopic_ws_client_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_client_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "legendFormat": "client_reject_ratio",
               "refId": "A"
             },
             {
-              "expr": "(sum(rate(kopic_ws_ge_inbound_rejected_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_ge_inbound_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(sum(rate(kopic_ws_ge_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "legendFormat": "ge_reject_ratio",
               "refId": "B"
             },
             {
-              "expr": "(sum(rate(kopic_ws_to_ge_publish_failures_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_ge_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(sum(rate(kopic_ws_to_ge_publish_failures_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_ge_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "legendFormat": "ws_to_ge_fail_ratio",
               "refId": "C"
             },
             {
-              "expr": "(sum(rate(kopic_ws_to_client_send_failures_total[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_client_events_total[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(sum(rate(kopic_ws_to_client_send_failures_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ws_to_client_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "legendFormat": "to_client_fail_ratio",
               "refId": "D"
             }
@@ -483,7 +502,7 @@ data:
           },
           "targets": [
             {
-              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_ge_inbound_events_total[$__rate_interval])))",
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])))",
               "legendFormat": "event={{event_code}}",
               "refId": "A"
             }
@@ -504,7 +523,7 @@ data:
           },
           "targets": [
             {
-              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_to_client_events_total[$__rate_interval])))",
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ws_to_client_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])))",
               "legendFormat": "event={{event_code}}",
               "refId": "A"
             }
@@ -525,7 +544,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (handler) (rate(kopic_ws_dispatch_duration_seconds_count[$__rate_interval])) or on() vector(0)",
+              "expr": "sum by (handler) (rate(kopic_ws_dispatch_duration_seconds_count{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "{{handler}}",
               "refId": "A"
             }
@@ -562,7 +581,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(100 * avg(process_cpu_usage{pod=~\"kopic-ws.*\"})) or (100 * avg(process_cpu_usage{job=~\"kopic-ws.*\"})) or on() vector(0)",
+              "expr": "(100 * avg(process_cpu_usage{pod=~\"${podFilter:raw}\"})) or (100 * avg(process_cpu_usage{job=~\"${podFilter:raw}\"})) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -597,7 +616,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(process_resident_memory_bytes{pod=~\"kopic-ws.*\"}) or sum(process_resident_memory_bytes{job=~\"kopic-ws.*\"}) or on() vector(0)",
+              "expr": "sum(process_resident_memory_bytes{pod=~\"${podFilter:raw}\"}) or sum(process_resident_memory_bytes{job=~\"${podFilter:raw}\"}) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -633,7 +652,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ws.*\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ws.*\"}, 0)), 1)) or on() vector(0)",
+              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}, 0)), 1)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -653,12 +672,12 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"kopic-ws.*\"}) or on() vector(0)",
+              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}) or on() vector(0)",
               "legendFormat": "heap_used",
               "refId": "A"
             },
             {
-              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"kopic-ws.*\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"kopic-ws.*\"}, 0)) or on() vector(0)",
+              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}, 0)) or on() vector(0)",
               "legendFormat": "heap_max",
               "refId": "B"
             }
