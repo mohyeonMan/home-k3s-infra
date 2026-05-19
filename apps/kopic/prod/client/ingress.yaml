@@ -12,8 +12,30 @@ spec:
   tls:
     - hosts:
         - jhhomehub.gonetis.com
+        - kopic.app
+        - www.kopic.app
   rules:
     - host: jhhomehub.gonetis.com
+      http:
+        paths:
+          - path: /kopic
+            pathType: Prefix
+            backend:
+              service:
+                name: kopic-client
+                port:
+                  number: 80
+    - host: kopic.app
+      http:
+        paths:
+          - path: /kopic
+            pathType: Prefix
+            backend:
+              service:
+                name: kopic-client
+                port:
+                  number: 80
+    - host: www.kopic.app
       http:
         paths:
           - path: /kopic

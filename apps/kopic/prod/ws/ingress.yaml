@@ -16,3 +16,23 @@ spec:
             name: kopic-ws
             port:
               number: 8080
+  - host: kopic.app
+    http:
+      paths:
+      - path: /kopic/ws
+        pathType: Prefix
+        backend:
+          service:
+            name: kopic-ws
+            port:
+              number: 8080
+  - host: www.kopic.app
+    http:
+      paths:
+      - path: /kopic/ws
+        pathType: Prefix
+        backend:
+          service:
+            name: kopic-ws
+            port:
+              number: 8080
