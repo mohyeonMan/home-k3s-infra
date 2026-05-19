@@ -3,23 +3,21 @@ kind: Ingress
 metadata:
   name: kopic-ws-ingress
   namespace: kopic
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - kopic.app
+        - www.kopic.app
   rules:
-  - host: jhhomehub.gonetis.com
-    http:
-      paths:
-      - path: /kopic/ws
-        pathType: Prefix
-        backend:
-          service:
-            name: kopic-ws
-            port:
-              number: 8080
   - host: kopic.app
     http:
       paths:
-      - path: /kopic/ws
+      - path: /ws
         pathType: Prefix
         backend:
           service:
@@ -29,7 +27,7 @@ spec:
   - host: www.kopic.app
     http:
       paths:
-      - path: /kopic/ws
+      - path: /ws
         pathType: Prefix
         backend:
           service:

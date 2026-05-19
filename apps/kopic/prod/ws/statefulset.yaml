@@ -45,4 +45,4 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         - name: KOPIC_WS_ENDPOINT
-          value: /kopic/ws
+          value: /ws
