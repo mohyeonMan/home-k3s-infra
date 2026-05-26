@@ -6,4 +6,5 @@ resources:
   - monitoring/application.yaml
   - logging/application.yaml
   - rabbitmq/application.yaml
+  - redis/application.yaml
   - kopic
