@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - ingress.yaml
   - service.yaml
   - statefulset.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-lobby-k3s
-    # Placeholder until kopic-lobby CI/CD starts publishing deployable images.
     newTag: sha-bcd03a1
