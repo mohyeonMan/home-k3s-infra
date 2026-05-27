@@ -46,6 +46,11 @@ spec:
               fieldPath: metadata.name
         - name: KOPIC_WS_ENDPOINT
           value: /kopic-dev/ws
+        - name: KOPIC_ROUTE_TOKEN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: route-token
+              key: secret
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
           value: kopic-dev.ws.event.
         - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX

@@ -39,6 +39,27 @@ spec:
               key: rabbitmq-password
         - name: KOPIC_NODE_ID
           value: ge-local
+        - name: KOPIC_REDIS_HOST
+          value: redis.redis.svc.cluster.local
+        - name: KOPIC_REDIS_PORT
+          value: "6379"
+        - name: KOPIC_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-password
+        - name: KOPIC_REDIS_ENABLED
+          value: "true"
+        - name: KOPIC_REDIS_STATUS
+          value: ACTIVE
+        - name: KOPIC_REDIS_KEY_GE_PREFIX
+          value: "kopic-dev.ge:"
+        - name: KOPIC_REDIS_KEY_GE_LOAD
+          value: "kopic-dev.ge:load"
+        - name: KOPIC_REDIS_KEY_QUICK_AVAILABLE
+          value: "kopic-dev.quick:available"
+        - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
+          value: "kopic-dev.roomcode:"
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
           value: kopic-dev.ge.event.
         - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX
