@@ -6,4 +6,4 @@ resources:
 images:
   - name: ghcr.io/mohyeonman/kopic-lobby-k3s
     # Placeholder until kopic-lobby CI/CD starts publishing deployable images.
-    newTag: dummy
+    newTag: sha-bcd03a1
