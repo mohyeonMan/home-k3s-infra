@@ -26,6 +26,8 @@ spec:
           limits:
             memory: 3Gi
         env:
+        - name: SERVER_SERVLET_CONTEXT_PATH
+          value: /kopic-dev
         - name: SPRING_DATA_REDIS_HOST
           value: redis.redis.svc.cluster.local
         - name: SPRING_DATA_REDIS_PORT
