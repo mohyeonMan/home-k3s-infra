@@ -6,4 +6,4 @@ resources:
   - statefulset.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-ge-k3s
-    newTag: sha-481d7fa
+    newTag: sha-c99fdb0
