@@ -4,7 +4,7 @@ metadata:
   name: kopic-dev-ge
 spec:
   serviceName: kopic-dev-ge-headless
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: kopic-dev-ge
@@ -38,7 +38,9 @@ spec:
               name: rabbitmq-auth
               key: rabbitmq-password
         - name: KOPIC_NODE_ID
-          value: ge-local
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         - name: KOPIC_REDIS_HOST
           value: redis.redis.svc.cluster.local
         - name: KOPIC_REDIS_PORT
