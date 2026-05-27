@@ -3,5 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - rabbitmq-auth-secret.yaml
+  - redis-auth-secret.yaml
+  - route-token-secret.yaml
   - application-dev.yaml
   - application-prod.yaml

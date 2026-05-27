@@ -33,12 +33,12 @@ spec:
         - name: SPRING_DATA_REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: kopic-dev-lobby-redis
+              name: redis-auth
               key: redis-password
         - name: KOPIC_ROUTE_TOKEN_SECRET
           valueFrom:
             secretKeyRef:
-              name: kopic-dev-lobby-route-token
+              name: route-token
               key: secret
         - name: KOPIC_ROUTE_TOKEN_TTL
           value: "10s"
