@@ -6,4 +6,4 @@ resources:
   - deployment.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-lobby-k3s
-    newTag: sha-dummy
+    newTag: sha-3718ab8
