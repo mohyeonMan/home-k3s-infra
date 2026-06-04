@@ -70,8 +70,6 @@ spec:
               key: redis-password
         - name: KOPIC_REDIS_ENABLED
           value: "true"
-        - name: KOPIC_REDIS_STATUS
-          value: ACTIVE
         - name: KOPIC_REDIS_KEY_GE_PREFIX
           value: "kopic-dev.ge:"
         - name: KOPIC_REDIS_KEY_GE_LOAD
@@ -82,6 +80,8 @@ spec:
           value: "kopic-dev.quick:ge:"
         - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
           value: "kopic-dev.roomcode:"
+        - name: KOPIC_RABBIT_OUTBOUND_EXCHANGE
+          value: kopic-dev.ws.exchange
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
           value: kopic-dev.ge.event.
         - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX
