@@ -1,9 +1,8 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: kopic-dev-lobby
 spec:
-  serviceName: kopic-dev-lobby-headless
   replicas: 1
   selector:
     matchLabels:

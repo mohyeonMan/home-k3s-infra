@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ingress.yaml
   - service.yaml
-  - statefulset.yaml
+  - deployment.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-lobby-k3s
     newTag: sha-3718ab8
