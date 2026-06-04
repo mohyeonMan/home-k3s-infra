@@ -70,7 +70,7 @@ spec:
               name: route-token
               key: secret
         - name: KOPIC_RABBIT_OUTBOUND_EXCHANGE
-          value: kopic-dev.ws.exchange
+          value: kopic-dev.exchange
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
           value: kopic-dev.ws.event.
         - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX

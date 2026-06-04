@@ -75,3 +75,5 @@ spec:
           value: kopic.ws.route.
         - name: KOPIC_RABBIT_OUTBOUND_ROUTING_KEY_PREFIX
           value: kopic.ge.route.
+        - name: KOPIC_RABBIT_OUTBOUND_EXCHANGE
+          value: kopic.exchange

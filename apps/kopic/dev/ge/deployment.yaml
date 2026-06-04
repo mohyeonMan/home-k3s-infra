@@ -81,7 +81,7 @@ spec:
         - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
           value: "kopic-dev.roomcode:"
         - name: KOPIC_RABBIT_OUTBOUND_EXCHANGE
-          value: kopic-dev.ws.exchange
+          value: kopic-dev.exchange
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
           value: kopic-dev.ge.event.
         - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX

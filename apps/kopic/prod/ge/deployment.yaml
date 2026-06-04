@@ -70,8 +70,6 @@ spec:
               key: redis-password
         - name: KOPIC_REDIS_ENABLED
           value: "true"
-        - name: KOPIC_REDIS_STATUS
-          value: ACTIVE
         - name: KOPIC_REDIS_KEY_GE_PREFIX
           value: "ge:"
         - name: KOPIC_REDIS_KEY_GE_LOAD
@@ -88,3 +86,5 @@ spec:
           value: kopic.ge.route.
         - name: KOPIC_RABBIT_OUTBOUND_ROUTING_KEY_PREFIX
           value: kopic.ws.route.
+        - name: KOPIC_RABBIT_OUTBOUND_EXCHANGE
+          value: kopic.exchange
