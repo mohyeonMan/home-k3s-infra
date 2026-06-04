@@ -50,6 +50,8 @@ spec:
           value: "kopic-dev.ge:load"
         - name: KOPIC_REDIS_KEY_QUICK_AVAILABLE
           value: "kopic-dev.quick:available"
+        - name: KOPIC_REDIS_KEY_QUICK_GE_ROOMS_PREFIX
+          value: "kopic-dev.quick:ge:"
         - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
           value: "kopic-dev.roomcode:"
         - name: KOPIC_LOBBY_QUICK_CANDIDATE_SCAN_LIMIT

@@ -1,10 +1,8 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: kopic-dev-ge
 spec:
-  serviceName: kopic-dev-ge-headless
-  replicas: 2
   selector:
     matchLabels:
       app: kopic-dev-ge
@@ -13,9 +11,13 @@ spec:
       labels:
         app: kopic-dev-ge
     spec:
+      terminationGracePeriodSeconds: 4500
       containers:
       - name: kopic-dev-ge
         image: ghcr.io/mohyeonman/kopic-ge-k3s
+        ports:
+        - containerPort: 8080
+          name: app
         resources:
           requests:
             cpu: 300m
@@ -37,10 +39,26 @@ spec:
             secretKeyRef:
               name: rabbitmq-auth
               key: rabbitmq-password
-        - name: KOPIC_NODE_ID
+        - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: KOPIC_NODE_ID
+          value: "$(POD_NAME)-$(POD_UID)"
+        - name: KOPIC_SHUTDOWN_PHASE_TIMEOUT
+          value: "70m"
+        - name: KOPIC_DRAIN_TIMEOUT
+          value: "3600s"
+        - name: KOPIC_DRAIN_POLL_INTERVAL
+          value: "60s"
+        - name: KOPIC_DRAIN_WAITING_ROOM_DELETE_DELAY
+          value: "300s"
+        - name: KOPIC_DRAIN_IN_GAME_NOTIFY_INTERVAL
+          value: "180s"
         - name: KOPIC_REDIS_HOST
           value: redis.redis.svc.cluster.local
         - name: KOPIC_REDIS_PORT
@@ -60,6 +78,8 @@ spec:
           value: "kopic-dev.ge:load"
         - name: KOPIC_REDIS_KEY_QUICK_AVAILABLE
           value: "kopic-dev.quick:available"
+        - name: KOPIC_REDIS_KEY_QUICK_GE_PREFIX
+          value: "kopic-dev.quick:ge:"
         - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
           value: "kopic-dev.roomcode:"
         - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX

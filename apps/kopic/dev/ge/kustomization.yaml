@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - service.yaml
   - servicemonitor.yaml
-  - statefulset.yaml
+  - deployment.yaml
+  - hpa.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-ge-k3s
     newTag: sha-e7900b8
