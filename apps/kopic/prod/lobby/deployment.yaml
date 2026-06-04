@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kopic-lobby
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kopic-lobby
+  template:
+    metadata:
+      labels:
+        app: kopic-lobby
+    spec:
+      containers:
+      - name: kopic-lobby
+        image: ghcr.io/mohyeonman/kopic-lobby-k3s
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            memory: 3Gi
+        env:
+        - name: SERVER_SERVLET_CONTEXT_PATH
+          value: /
+        - name: SPRING_DATA_REDIS_HOST
+          value: redis.redis.svc.cluster.local
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        - name: SPRING_DATA_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-password
+        - name: KOPIC_ROUTE_TOKEN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: route-token
+              key: secret
+        - name: KOPIC_ROUTE_TOKEN_TTL
+          value: "10s"
+        - name: KOPIC_REDIS_KEY_GE_PREFIX
+          value: "ge:"
+        - name: KOPIC_REDIS_KEY_GE_LOAD
+          value: "ge:load"
+        - name: KOPIC_REDIS_KEY_QUICK_AVAILABLE
+          value: "quick:available"
+        - name: KOPIC_REDIS_KEY_QUICK_GE_ROOMS_PREFIX
+          value: "quick:ge:"
+        - name: KOPIC_REDIS_KEY_ROOM_CODE_PREFIX
+          value: "roomCode:"
+        - name: KOPIC_LOBBY_QUICK_CANDIDATE_SCAN_LIMIT
+          value: "5"

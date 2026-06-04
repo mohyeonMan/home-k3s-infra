@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kopic-ws
+spec:
+  selector:
+    matchLabels:
+      app: kopic-ws
+  template:
+    metadata:
+      labels:
+        app: kopic-ws
+    spec:
+      terminationGracePeriodSeconds: 4500
+      containers:
+      - name: kopic-ws
+        image: ghcr.io/mohyeonman/kopic-ws-k3s
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 2
+        resources:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+        env:
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq.rabbitmq.svc.cluster.local
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-username
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-auth
+              key: rabbitmq-password
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: KOPIC_NODE_ID
+          value: "$(POD_NAME)-$(POD_UID)"
+        - name: KOPIC_SHUTDOWN_PHASE_TIMEOUT
+          value: "70m"
+        - name: KOPIC_DRAIN_TIMEOUT
+          value: "3600s"
+        - name: KOPIC_DRAIN_POLL_INTERVAL
+          value: "60s"
+        - name: KOPIC_WS_ENDPOINT
+          value: /ws
+        - name: KOPIC_ROUTE_TOKEN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: route-token
+              key: secret
+        - name: KOPIC_RABBIT_INBOUND_QUEUE_PREFIX
+          value: kopic.ws.event.
+        - name: KOPIC_RABBIT_INBOUND_ROUTING_KEY_PREFIX
+          value: kopic.ws.route.
+        - name: KOPIC_RABBIT_OUTBOUND_ROUTING_KEY_PREFIX
+          value: kopic.ge.route.

@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kopic-lobby-ingress
+  namespace: kopic
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - kopic.app
+        - www.kopic.app
+  rules:
+  - host: kopic.app
+    http:
+      paths:
+      - path: /routes
+        pathType: Prefix
+        backend:
+          service:
+            name: kopic-lobby
+            port:
+              number: 8080
+  - host: www.kopic.app
+    http:
+      paths:
+      - path: /routes
+        pathType: Prefix
+        backend:
+          service:
+            name: kopic-lobby
+            port:
+              number: 8080

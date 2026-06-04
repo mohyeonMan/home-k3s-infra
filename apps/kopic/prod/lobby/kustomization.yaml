@@ -1,11 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - ingress.yaml
   - service.yaml
   - deployment.yaml
-  - hpa.yaml
-  - servicemonitor.yaml
-  - ingress.yaml
 images:
-  - name: ghcr.io/mohyeonman/kopic-ws-k3s
-    newTag: sha-e9b856d
+  - name: ghcr.io/mohyeonman/kopic-lobby-k3s
+    newTag: sha-dummy
