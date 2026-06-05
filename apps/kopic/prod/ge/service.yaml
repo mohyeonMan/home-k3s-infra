@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kopic-ge-headless
+  name: kopic-ge
   labels:
     app: kopic-ge
 spec:
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: kopic-ge
   ports:

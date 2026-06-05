@@ -12,18 +12,3 @@ spec:
   - name: http
     port: 8080
     targetPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kopic-dev-ws-headless
-  labels:
-    app: kopic-dev-ws
-spec:
-  clusterIP: None
-  selector:
-    app: kopic-dev-ws
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
