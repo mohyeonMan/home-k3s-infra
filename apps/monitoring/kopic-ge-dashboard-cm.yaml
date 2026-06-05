@@ -24,7 +24,7 @@ data:
             "includeAll": false,
             "label": "Environment",
             "multi": false,
-            "name": "podFilter",
+            "name": "envFilter",
             "options": [
               { "selected": true, "text": "prod", "value": "kopic-ge.*" },
               { "selected": false, "text": "dev", "value": "kopic-dev-ge.*" },
@@ -32,6 +32,17 @@ data:
             ],
             "query": "prod : kopic-ge.*, dev : kopic-dev-ge.*, all : kopic(-dev)?-ge.*",
             "type": "custom"
+          },
+          {
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "hide": 0,
+            "includeAll": true,
+            "label": "Pod",
+            "multi": true,
+            "name": "pod",
+            "query": "label_values(kopic_ge_rooms_active{pod=~\"${envFilter:raw}\"}, pod)",
+            "refresh": 2,
+            "type": "query"
           }
         ]
       },
@@ -64,7 +75,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(kopic_ge_rooms_active{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(kopic_ge_rooms_active{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -95,7 +106,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(kopic_ge_participants{pod=~\"${podFilter:raw}\"}) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(kopic_ge_participants{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -127,7 +138,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ge_inbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -159,7 +170,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ge_outbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ge_outbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -193,7 +204,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(sum(rate(kopic_ge_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(sum(rate(kopic_ge_inbound_rejected_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_inbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -227,7 +238,7 @@ data:
             "justifyMode": "auto"
           },
           "targets": [
-            { "expr": "sum(rate(kopic_ge_outbound_publish_failures_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
+            { "expr": "sum(rate(kopic_ge_outbound_publish_failures_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) or on() vector(0)", "refId": "A" }
           ]
         },
         {
@@ -244,7 +255,7 @@ data:
             "tooltip": { "mode": "single", "sort": "none" }
           },
           "targets": [
-            { "expr": "sum by (room_type) (kopic_ge_rooms_active{pod=~\"${podFilter:raw}\"})", "legendFormat": "{{room_type}}", "refId": "A" }
+            { "expr": "sum by (room_type) (kopic_ge_rooms_active{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})", "legendFormat": "{{room_type}}", "refId": "A" }
           ]
         },
         {
@@ -261,7 +272,7 @@ data:
             "tooltip": { "mode": "single", "sort": "none" }
           },
           "targets": [
-            { "expr": "sum by (room_type) (kopic_ge_participants{pod=~\"${podFilter:raw}\"})", "legendFormat": "{{room_type}}", "refId": "A" }
+            { "expr": "sum by (room_type) (kopic_ge_participants{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})", "legendFormat": "{{room_type}}", "refId": "A" }
           ]
         },
         {
@@ -279,7 +290,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(sum(kopic_ge_participants{pod=~\"${podFilter:raw}\"}) / clamp_min(sum(kopic_ge_rooms_active{pod=~\"${podFilter:raw}\"}), 1e-9)) or on() vector(0)",
+              "expr": "(sum(kopic_ge_participants{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) / clamp_min(sum(kopic_ge_rooms_active{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}), 1e-9)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -299,12 +310,12 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(rate(kopic_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ge_inbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "inbound",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(kopic_ge_outbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])) or on() vector(0)",
+              "expr": "sum(rate(kopic_ge_outbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) or on() vector(0)",
               "legendFormat": "outbound",
               "refId": "B"
             }
@@ -325,7 +336,7 @@ data:
           },
           "targets": [
             {
-              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_inbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])))",
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_inbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
               "legendFormat": "event={{event_code}}",
               "refId": "A"
             }
@@ -346,7 +357,7 @@ data:
           },
           "targets": [
             {
-              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_outbound_events_total{pod=~\"${podFilter:raw}\"}[$__rate_interval])))",
+              "expr": "topk(10, sum by (event_code) (rate(kopic_ge_outbound_events_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
               "legendFormat": "event={{event_code}}",
               "refId": "A"
             }
@@ -371,7 +382,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (result) (rate(kopic_ge_room_submit_total{pod=~\"${podFilter:raw}\"}[$__rate_interval]))",
+              "expr": "sum by (result) (rate(kopic_ge_room_submit_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
               "legendFormat": "{{result}}",
               "refId": "A"
             }
@@ -392,7 +403,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ge_room_submit_total{pod=~\"${podFilter:raw}\",result=\"rejected\"}[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ge_room_submit_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",result=\"rejected\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -413,12 +424,12 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(increase(kopic_ge_timer_scheduled_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
+              "expr": "sum(increase(kopic_ge_timer_scheduled_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m])) or on() vector(0)",
               "legendFormat": "scheduled",
               "refId": "A"
             },
             {
-              "expr": "sum(increase(kopic_ge_timer_cancelled_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
+              "expr": "sum(increase(kopic_ge_timer_cancelled_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m])) or on() vector(0)",
               "legendFormat": "cancelled",
               "refId": "B"
             }
@@ -439,7 +450,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (room_type, trigger) (increase(kopic_ge_game_start_total{pod=~\"${podFilter:raw}\"}[10m]))",
+              "expr": "sum by (room_type, trigger) (increase(kopic_ge_game_start_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m]))",
               "legendFormat": "{{room_type}}/{{trigger}}",
               "refId": "A"
             }
@@ -460,7 +471,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ge_turn_end_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ge_turn_end_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -481,7 +492,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ge_inbound_rejected_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ge_inbound_rejected_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -502,7 +513,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (reason) (increase(kopic_ge_outbound_publish_failures_total{pod=~\"${podFilter:raw}\"}[10m])) or on() vector(0)",
+              "expr": "sum by (reason) (increase(kopic_ge_outbound_publish_failures_total{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[10m])) or on() vector(0)",
               "legendFormat": "{{reason}}",
               "refId": "A"
             }
@@ -523,7 +534,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(1000 * sum(rate(kopic_ge_room_job_duration_seconds_sum{pod=~\"${podFilter:raw}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_room_job_duration_seconds_count{pod=~\"${podFilter:raw}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
+              "expr": "(1000 * sum(rate(kopic_ge_room_job_duration_seconds_sum{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) / clamp_min(sum(rate(kopic_ge_room_job_duration_seconds_count{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])), 1e-9)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -559,7 +570,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(100 * avg(process_cpu_usage{pod=~\"${podFilter:raw}\"})) or (100 * avg(process_cpu_usage{job=~\"${podFilter:raw}\"})) or on() vector(0)",
+              "expr": "(100 * avg(process_cpu_usage{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})) or (100 * avg(process_cpu_usage{job=~\"${envFilter:raw}\"})) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -594,7 +605,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(process_resident_memory_bytes{pod=~\"${podFilter:raw}\"}) or sum(process_resident_memory_bytes{job=~\"${podFilter:raw}\"}) or on() vector(0)",
+              "expr": "sum(process_resident_memory_bytes{pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) or sum(process_resident_memory_bytes{job=~\"${envFilter:raw}\"}) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -630,7 +641,7 @@ data:
           },
           "targets": [
             {
-              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}, 0)), 1)) or on() vector(0)",
+              "expr": "(100 * sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}, 0)), 1)) or (100 * sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${envFilter:raw}\"}) / clamp_min(sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${envFilter:raw}\"}, 0)), 1)) or on() vector(0)",
               "refId": "A"
             }
           ]
@@ -650,12 +661,12 @@ data:
           },
           "targets": [
             {
-              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}) or on() vector(0)",
+              "expr": "sum(jvm_memory_used_bytes{area=\"heap\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}) or sum(jvm_memory_used_bytes{area=\"heap\",job=~\"${envFilter:raw}\"}) or on() vector(0)",
               "legendFormat": "heap_used",
               "refId": "A"
             },
             {
-              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${podFilter:raw}\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${podFilter:raw}\"}, 0)) or on() vector(0)",
+              "expr": "sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}, 0)) or sum(clamp_min(jvm_memory_max_bytes{area=\"heap\",job=~\"${envFilter:raw}\"}, 0)) or on() vector(0)",
               "legendFormat": "heap_max",
               "refId": "B"
             }
