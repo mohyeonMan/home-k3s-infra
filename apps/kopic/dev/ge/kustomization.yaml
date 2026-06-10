@@ -7,4 +7,4 @@ resources:
   - hpa.yaml
 images:
   - name: ghcr.io/mohyeonman/kopic-ge-k3s
-    newTag: sha-356ef23
+    newTag: sha-4dce249
