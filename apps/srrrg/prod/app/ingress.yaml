@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: srrrg-prod-app-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - srrrg.link
+  rules:
+    - host: srrrg.link
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: srrrg-prod-app
+                port:
+                  number: 80

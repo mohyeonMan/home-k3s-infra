@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srrrg-dev-app
+  labels:
+    app: srrrg-dev-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: srrrg-dev-app
+  template:
+    metadata:
+      labels:
+        app: srrrg-dev-app
+    spec:
+      containers:
+      - name: srrrg-dev-app
+        image: ghcr.io/mohyeonman/srrrg
+        ports:
+        - containerPort: 8080
+          name: app
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+        - name: SERVER_SERVLET_CONTEXT_PATH
+          value: /srrrg-dev
+        - name: SRRRG_BASE_URL
+          value: https://jhhomehub.gonetis.com/srrrg-dev
+        - name: SRRRG_TRUST_FORWARDED_HEADERS
+          value: "true"
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-db-auth
+              key: dev-db-url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-db-auth
+              key: dev-db-username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-db-auth
+              key: dev-db-password
+        - name: JAVA_TOOL_OPTIONS
+          value: -XX:MaxRAMPercentage=75
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 10
+        readinessProbe:
+          httpGet:
+            path: /srrrg-dev/actuator/health/readiness
+            port: app
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /srrrg-dev/actuator/health/liveness
+            port: app
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3

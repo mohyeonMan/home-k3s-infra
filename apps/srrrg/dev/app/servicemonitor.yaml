@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: srrrg-dev-app
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: srrrg-dev-app
+  namespaceSelector:
+    matchNames:
+      - srrrg
+  endpoints:
+    - port: app
+      path: /srrrg-dev/actuator/prometheus
+      interval: 30s

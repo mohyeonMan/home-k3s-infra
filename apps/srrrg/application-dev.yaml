@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: srrrg-dev-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mohyeonMan/home-k3s-infra.git
+    targetRevision: main
+    path: apps/srrrg/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: srrrg
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: postgres
+data:
+  01-create-srrrg-databases.sh: |
+    #!/bin/sh
+    set -eu
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<EOSQL
+    CREATE USER "srrrg-dev" WITH PASSWORD '${SRRRG_DEV_DB_PASSWORD}';
+    CREATE DATABASE "srrrg-dev" OWNER "srrrg-dev";
+    GRANT ALL PRIVILEGES ON DATABASE "srrrg-dev" TO "srrrg-dev";
+    CREATE USER "srrrg-prod" WITH PASSWORD '${SRRRG_PROD_DB_PASSWORD}';
+    CREATE DATABASE "srrrg-prod" OWNER "srrrg-prod";
+    GRANT ALL PRIVILEGES ON DATABASE "srrrg-prod" TO "srrrg-prod";
+    EOSQL
