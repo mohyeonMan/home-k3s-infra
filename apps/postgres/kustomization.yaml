@@ -5,4 +5,5 @@ resources:
   - postgres-auth-secret.yaml
   - init-configmap.yaml
   - postgres-service.yaml
+  - postgres-ingressroutetcp.yaml
   - postgres-statefulset.yaml
