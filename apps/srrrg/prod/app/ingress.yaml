@@ -11,8 +11,19 @@ spec:
   tls:
     - hosts:
         - srrrg.link
+        - www.srrrg.link
   rules:
     - host: srrrg.link
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: srrrg-prod-app
+                port:
+                  number: 80
+    - host: www.srrrg.link
       http:
         paths:
           - path: /
