@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - db-auth-secret.yaml
+  - google-safe-browsing-secret.yaml
   - application-dev.yaml
   - application-prod.yaml

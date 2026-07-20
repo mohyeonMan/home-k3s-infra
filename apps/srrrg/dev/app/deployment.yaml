@@ -51,6 +51,11 @@ spec:
             secretKeyRef:
               name: srrrg-db-auth
               key: dev-db-password
+        - name: GOOGLE_SAFE_BROWSING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-google-safe-browsing
+              key: GOOGLE_SAFE_BROWSING_API_KEY
         - name: JAVA_TOOL_OPTIONS
           value: -XX:MaxRAMPercentage=75
         lifecycle:
