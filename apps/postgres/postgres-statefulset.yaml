@@ -82,13 +82,6 @@ spec:
           periodSeconds: 10
       - name: postgres-exporter
         image: quay.io/prometheuscommunity/postgres-exporter:v0.19.1
-        args:
-        - --collector.database
-        - --collector.locks
-        - --collector.stat_activity
-        - --collector.stat_database
-        - --collector.stat_user_tables
-        - --collector.statio_user_tables
         env:
         - name: DATA_SOURCE_NAME
           value: host=/var/run/postgresql user=postgres_exporter dbname=postgres sslmode=disable
