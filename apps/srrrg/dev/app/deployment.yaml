@@ -36,6 +36,12 @@ spec:
           value: https://jhhomehub.gonetis.com/srrrg-dev
         - name: SRRRG_TRUST_FORWARDED_HEADERS
           value: "true"
+        - name: SRRRG_URL_RISK_PROVIDER
+          value: fixed-safe
+        - name: SRRRG_URL_RISK_FIXED_SAFE_DELAY
+          value: 100ms
+        - name: SRRRG_URL_RISK_FIXED_SAFE_CACHE_DURATION
+          value: 5m
         - name: SPRING_DATASOURCE_URL
           valueFrom:
             secretKeyRef:
