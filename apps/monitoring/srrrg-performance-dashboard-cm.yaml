@@ -1,0 +1,773 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srrrg-performance-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  srrrg-performance.json: |-
+    {
+      "title": "srrrg Performance",
+      "uid": "srrrg-performance",
+      "tags": ["srrrg", "performance", "spring-boot", "postgresql"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "5s",
+      "editable": true,
+      "graphTooltip": 2,
+      "time": { "from": "now-30m", "to": "now" },
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Performance test runs",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": true, "text": "dev", "value": "srrrg-dev-app.*" },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Environment",
+            "multi": false,
+            "name": "envFilter",
+            "options": [
+              { "selected": false, "text": "prod", "value": "srrrg-prod-app.*" },
+              { "selected": true, "text": "dev", "value": "srrrg-dev-app.*" },
+              { "selected": false, "text": "all", "value": "srrrg-(prod|dev)-app.*" }
+            ],
+            "query": "prod : srrrg-prod-app.*, dev : srrrg-dev-app.*, all : srrrg-(prod|dev)-app.*",
+            "type": "custom"
+          },
+          {
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "hide": 0,
+            "includeAll": true,
+            "label": "Pod",
+            "multi": true,
+            "name": "pod",
+            "query": "label_values(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\"}, pod)",
+            "refresh": 2,
+            "type": "query"
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "HTTP Requests / sec",
+          "description": "Actuator endpoints excluded",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "decimals": 2, "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval])) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "HTTP 5xx Rate",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 3,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 0.1 },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "100 * sum(rate(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\",status=~\"5..\"}[$__rate_interval])) / clamp_min(sum(rate(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval])), 1e-9)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Redirect p95",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "decimals": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 100 },
+                  { "color": "red", "value": 250 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le) (rate(srrrg_redirect_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Redirect p99",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "decimals": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 250 },
+                  { "color": "red", "value": 500 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(srrrg_redirect_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "URL Risk Cache Hit",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 1,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 80 },
+                  { "color": "green", "value": 95 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "100 * sum(rate(srrrg_url_risk_cache_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",result=\"hit\"}[$__rate_interval])) / clamp_min(sum(rate(srrrg_url_risk_cache_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])), 1e-9)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "DB Connections",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "decimals": 0, "min": 0 },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "sum(pg_stat_database_numbackends{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}) or on() vector(0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "HTTP Throughput by Route",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "decimals": 2, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (method, uri) (rate(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval]))",
+              "legendFormat": "{{method}} {{uri}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "HTTP Latency",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "fieldConfig": {
+            "defaults": { "unit": "ms", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "1000 * histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval])))",
+              "legendFormat": "p50",
+              "refId": "A"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval])))",
+              "legendFormat": "p95",
+              "refId": "B"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval])))",
+              "legendFormat": "p99",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Application Operation Latency p95",
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 12 },
+          "fieldConfig": {
+            "defaults": { "unit": "ms", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le) (rate(srrrg_redirect_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "redirect p95",
+              "refId": "A"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le, type) (rate(srrrg_redirect_write_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "write {{type}} p95",
+              "refId": "B"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le) (rate(srrrg_link_create_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "link create p95",
+              "refId": "C"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le, provider) (rate(srrrg_url_risk_check_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "risk {{provider}} p95",
+              "refId": "D"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(srrrg_redirect_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "redirect p99",
+              "refId": "E"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le, type) (rate(srrrg_redirect_write_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "write {{type}} p99",
+              "refId": "F"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(srrrg_link_create_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "link create p99",
+              "refId": "G"
+            },
+            {
+              "expr": "1000 * histogram_quantile(0.99, sum by (le, provider) (rate(srrrg_url_risk_check_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "risk {{provider}} p99",
+              "refId": "H"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "type": "timeseries",
+          "title": "Application Outcomes",
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 12 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "decimals": 2, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (outcome) (rate(srrrg_redirect_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
+              "legendFormat": "redirect {{outcome}}",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (outcome) (rate(srrrg_link_create_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
+              "legendFormat": "create {{outcome}}",
+              "refId": "B"
+            },
+            {
+              "expr": "sum by (result) (rate(srrrg_url_risk_cache_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
+              "legendFormat": "cache {{result}}",
+              "refId": "C"
+            },
+            {
+              "expr": "sum by (provider, outcome) (rate(srrrg_url_risk_check_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
+              "legendFormat": "risk {{provider}} {{outcome}}",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "type": "timeseries",
+          "title": "Pod Throughput",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 21 },
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "decimals": 2, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (rate(http_server_requests_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",uri!~\".*actuator.*\"}[$__rate_interval]))",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "type": "timeseries",
+          "title": "Pod Redirect p95",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 21 },
+          "fieldConfig": {
+            "defaults": { "unit": "ms", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "1000 * histogram_quantile(0.95, sum by (le, pod) (rate(srrrg_redirect_seconds_bucket{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])))",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "type": "timeseries",
+          "title": "Pod CPU and Throttling",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 21 },
+          "fieldConfig": {
+            "defaults": { "unit": "cores", "decimals": 3, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",container=~\"srrrg-.*\",image!=\"\"}[$__rate_interval]))",
+              "legendFormat": "{{pod}} usage",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",container=~\"srrrg-.*\"}[$__rate_interval]))",
+              "legendFormat": "{{pod}} throttled",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "type": "timeseries",
+          "title": "Pod Memory and Restarts",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 29 },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": [
+              {
+                "matcher": { "id": "byFrameRefID", "options": "B" },
+                "properties": [
+                  { "id": "unit", "value": "none" },
+                  { "id": "custom.axisPlacement", "value": "right" }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",container=~\"srrrg-.*\",image!=\"\"})",
+              "legendFormat": "{{pod}} memory",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (pod) (kube_pod_container_status_restarts_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} restarts",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "type": "timeseries",
+          "title": "JVM Heap and GC Pause",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 29 },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": [
+              {
+                "matcher": { "id": "byFrameRefID", "options": "B" },
+                "properties": [
+                  { "id": "unit", "value": "ms" },
+                  { "id": "custom.axisPlacement", "value": "right" }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (jvm_memory_used_bytes{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\",area=\"heap\"})",
+              "legendFormat": "{{pod}} heap",
+              "refId": "A"
+            },
+            {
+              "expr": "1000 * sum by (pod) (rate(jvm_gc_pause_seconds_sum{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])) / clamp_min(sum by (pod) (rate(jvm_gc_pause_seconds_count{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval])), 1e-9)",
+              "legendFormat": "{{pod}} GC average",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "type": "timeseries",
+          "title": "Tomcat Threads",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 29 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "decimals": 0, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (tomcat_threads_busy_threads{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} busy",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (pod) (tomcat_threads_current_threads{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} current",
+              "refId": "B"
+            },
+            {
+              "expr": "sum by (pod) (tomcat_threads_config_max_threads{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} max",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "type": "timeseries",
+          "title": "HikariCP Connections",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "decimals": 0, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (hikaricp_connections_active{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} active",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (pod) (hikaricp_connections_idle{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} idle",
+              "refId": "B"
+            },
+            {
+              "expr": "sum by (pod) (hikaricp_connections_pending{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} pending",
+              "refId": "C"
+            },
+            {
+              "expr": "sum by (pod) (hikaricp_connections_max{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"})",
+              "legendFormat": "{{pod}} max",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "type": "timeseries",
+          "title": "HikariCP Timeouts",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 3,
+              "min": 0,
+              "lineWidth": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 0.001 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (rate(hikaricp_connections_timeout_total{namespace=\"srrrg\",pod=~\"${envFilter:raw}\",pod=~\"${pod:regex}\"}[$__rate_interval]))",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "type": "timeseries",
+          "title": "PostgreSQL Transactions",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 45 },
+          "fieldConfig": {
+            "defaults": { "unit": "ops", "decimals": 2, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (datname) (rate(pg_stat_database_xact_commit{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval]))",
+              "legendFormat": "{{datname}} commit",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (datname) (rate(pg_stat_database_xact_rollback{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval]))",
+              "legendFormat": "{{datname}} rollback",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 20,
+          "type": "timeseries",
+          "title": "PostgreSQL Locks and Deadlocks",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 45 },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "decimals": 2, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (datname, mode) (pg_locks_count{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"})",
+              "legendFormat": "{{datname}} {{mode}}",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (datname) (rate(pg_stat_database_deadlocks{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval]))",
+              "legendFormat": "{{datname}} deadlocks/s",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "type": "timeseries",
+          "title": "PostgreSQL Cache Hit Ratio",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 45 },
+          "fieldConfig": {
+            "defaults": { "unit": "percent", "decimals": 2, "min": 0, "max": 100, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "100 * sum by (datname) (rate(pg_stat_database_blks_hit{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval])) / clamp_min(sum by (datname) (rate(pg_stat_database_blks_hit{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval])), 1e-9)",
+              "legendFormat": "{{datname}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "type": "timeseries",
+          "title": "PostgreSQL Pod CPU and Memory",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 53 },
+          "fieldConfig": {
+            "defaults": { "unit": "cores", "decimals": 3, "min": 0, "lineWidth": 2 },
+            "overrides": [
+              {
+                "matcher": { "id": "byFrameRefID", "options": "B" },
+                "properties": [
+                  { "id": "unit", "value": "bytes" },
+                  { "id": "custom.axisPlacement", "value": "right" }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"postgres\",pod=~\"postgres-.*\",container=\"postgres\",image!=\"\"}[$__rate_interval]))",
+              "legendFormat": "CPU",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"postgres\",pod=~\"postgres-.*\",container=\"postgres\",image!=\"\"})",
+              "legendFormat": "memory",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "type": "timeseries",
+          "title": "PostgreSQL I/O and Temporary Data",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 53 },
+          "fieldConfig": {
+            "defaults": { "unit": "Bps", "decimals": 1, "min": 0, "lineWidth": 2 },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (datname) (rate(pg_stat_database_temp_bytes{namespace=\"postgres\",datname=~\"srrrg-(dev|prod)\"}[$__rate_interval]))",
+              "legendFormat": "{{datname}} temp",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(container_fs_reads_bytes_total{namespace=\"postgres\",pod=~\"postgres-.*\",container=\"postgres\"}[$__rate_interval]))",
+              "legendFormat": "container read",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(container_fs_writes_bytes_total{namespace=\"postgres\",pod=~\"postgres-.*\",container=\"postgres\"}[$__rate_interval]))",
+              "legendFormat": "container write",
+              "refId": "C"
+            }
+          ]
+        }
+      ]
+    }

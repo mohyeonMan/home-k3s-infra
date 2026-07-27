@@ -13,6 +13,9 @@ spec:
   - name: postgres
     port: 5432
     targetPort: 5432
+  - name: metrics
+    port: 9187
+    targetPort: metrics
 ---
 apiVersion: v1
 kind: Service

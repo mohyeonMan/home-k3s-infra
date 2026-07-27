@@ -16,3 +16,15 @@ data:
     CREATE DATABASE "srrrg-prod" OWNER "srrrg-prod";
     GRANT ALL PRIVILEGES ON DATABASE "srrrg-prod" TO "srrrg-prod";
     EOSQL
+
+    psql -v ON_ERROR_STOP=1 \
+      --username "$POSTGRES_USER" \
+      --dbname postgres \
+      --command 'CREATE USER postgres_exporter; GRANT pg_monitor TO postgres_exporter;'
+
+    for database in postgres srrrg-dev srrrg-prod; do
+      psql -v ON_ERROR_STOP=1 \
+        --username "$POSTGRES_USER" \
+        --dbname "$database" \
+        --command 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements;'
+    done

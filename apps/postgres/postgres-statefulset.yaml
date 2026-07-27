@@ -17,6 +17,17 @@ spec:
       containers:
       - name: postgres
         image: postgres:16
+        args:
+        - -c
+        - shared_preload_libraries=pg_stat_statements
+        - -c
+        - compute_query_id=on
+        - -c
+        - pg_stat_statements.max=5000
+        - -c
+        - pg_stat_statements.track=top
+        - -c
+        - track_io_timing=on
         ports:
         - containerPort: 5432
           name: postgres
@@ -51,6 +62,8 @@ spec:
         - name: init
           mountPath: /docker-entrypoint-initdb.d
           readOnly: true
+        - name: postgres-socket
+          mountPath: /var/run/postgresql
         livenessProbe:
           exec:
             command:
@@ -67,10 +80,39 @@ spec:
             - postgres
           initialDelaySeconds: 5
           periodSeconds: 10
+      - name: postgres-exporter
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.19.1
+        args:
+        - --collector.database
+        - --collector.locks
+        - --collector.stat_activity
+        - --collector.stat_database
+        - --collector.stat_user_tables
+        - --collector.statio_user_tables
+        env:
+        - name: DATA_SOURCE_NAME
+          value: host=/var/run/postgresql user=postgres_exporter dbname=postgres sslmode=disable
+        - name: PG_EXPORTER_COLLECTION_TIMEOUT
+          value: 4s
+        ports:
+        - containerPort: 9187
+          name: metrics
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: postgres-socket
+          mountPath: /var/run/postgresql
       volumes:
       - name: init
         configMap:
           name: postgres-init
+      - name: postgres-socket
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: data

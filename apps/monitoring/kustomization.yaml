@@ -5,3 +5,4 @@ resources:
   - cluster-logs-dashboard-cm.yaml
   - kopic-ge-dashboard-cm.yaml
   - kopic-ws-dashboard-cm.yaml
+  - srrrg-performance-dashboard-cm.yaml

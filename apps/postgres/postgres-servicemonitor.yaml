@@ -1,18 +1,19 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: srrrg-dev-app
+  name: postgres
+  namespace: postgres
   labels:
     release: monitoring
 spec:
   selector:
     matchLabels:
-      app: srrrg-dev-app
+      app: postgres
   namespaceSelector:
     matchNames:
-      - srrrg
+    - postgres
   endpoints:
-    - port: app
-      path: /srrrg-dev/actuator/prometheus
-      interval: 5s
-      scrapeTimeout: 3s
+  - port: metrics
+    path: /metrics
+    interval: 10s
+    scrapeTimeout: 5s
