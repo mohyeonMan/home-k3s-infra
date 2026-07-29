@@ -39,9 +39,9 @@ spec:
         - name: SRRRG_URL_RISK_PROVIDER
           value: fixed-safe
         - name: SRRRG_URL_RISK_FIXED_SAFE_DELAY
-          value: 0ms
+          value: 100ms
         - name: SRRRG_URL_RISK_FIXED_SAFE_CACHE_DURATION
-          value: 1ms
+          value: 1s
         - name: SPRING_DATASOURCE_URL
           valueFrom:
             secretKeyRef:
