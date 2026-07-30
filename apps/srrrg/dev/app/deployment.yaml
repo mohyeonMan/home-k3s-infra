@@ -5,7 +5,7 @@ metadata:
   labels:
     app: srrrg-dev-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: srrrg-dev-app
