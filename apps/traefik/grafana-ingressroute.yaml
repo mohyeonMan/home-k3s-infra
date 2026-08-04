@@ -6,6 +6,8 @@ metadata:
 spec:
   entryPoints:
   - grafana
+  tls:
+    certResolver: letsencrypt
   routes:
   - match: Host(`jhhomehub.gonetis.com`)
     kind: Rule
