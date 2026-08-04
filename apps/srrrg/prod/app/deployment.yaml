@@ -34,6 +34,66 @@ spec:
           value: https://srrrg.link
         - name: SRRRG_TRUST_FORWARDED_HEADERS
           value: "true"
+        - name: SRRRG_JWT_ACTIVE_KID
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: jwt-active-kid
+              optional: true
+        - name: SRRRG_JWT_ACTIVE_KEY_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: jwt-active-key-base64
+              optional: true
+        - name: SRRRG_JWT_PREVIOUS_KID
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: jwt-previous-kid
+              optional: true
+        - name: SRRRG_JWT_PREVIOUS_KEY_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: jwt-previous-key-base64
+              optional: true
+        - name: GOOGLE_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: google-client-id
+              optional: true
+        - name: GOOGLE_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: google-client-secret
+              optional: true
+        - name: KAKAO_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: kakao-client-id
+              optional: true
+        - name: KAKAO_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: kakao-client-secret
+              optional: true
+        - name: GITHUB_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: github-client-id
+              optional: true
+        - name: GITHUB_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-prod-auth
+              key: github-client-secret
+              optional: true
         - name: SRRRG_URL_RISK_PROVIDER
           value: google
         - name: SRRRG_URL_RISK_FIXED_SAFE_DELAY
