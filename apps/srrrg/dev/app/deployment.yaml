@@ -96,6 +96,23 @@ spec:
               name: srrrg-dev-auth
               key: github-client-secret
               optional: true
+        - name: SPRING_MAIL_HOST
+          value: smtp.gmail.com
+        - name: SPRING_MAIL_PORT
+          value: "587"
+        - name: SPRING_MAIL_USERNAME
+          value: srrrg.noreply@gmail.com
+        - name: SPRING_MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: srrrg-dev-mail
+              key: SPRING_MAIL_PASSWORD
+        - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+          value: "true"
+        - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+          value: "true"
+        - name: SRRRG_MAIL_FROM
+          value: srrrg.noreply@gmail.com
         - name: SRRRG_URL_RISK_PROVIDER
           value: fixed-safe
         - name: SRRRG_URL_RISK_FIXED_SAFE_DELAY

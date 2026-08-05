@@ -6,5 +6,7 @@ resources:
   - google-safe-browsing-secret.yaml
   - dev-auth-secret.yaml
   - prod-auth-secret.yaml
+  - dev-mail-secret.yaml
+  - prod-mail-secret.yaml
   - application-dev.yaml
   - application-prod.yaml
