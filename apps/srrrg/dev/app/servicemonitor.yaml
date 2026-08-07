@@ -13,6 +13,6 @@ spec:
       - srrrg
   endpoints:
     - port: app
-      path: /srrrg-dev/actuator/prometheus
+      path: /actuator/prometheus
       interval: 5s
       scrapeTimeout: 3s

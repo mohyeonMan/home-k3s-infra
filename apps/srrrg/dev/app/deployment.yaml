@@ -30,10 +30,8 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: dev
-        - name: SERVER_SERVLET_CONTEXT_PATH
-          value: /srrrg-dev
         - name: SRRRG_BASE_URL
-          value: https://jhhomehub.gonetis.com/srrrg-dev
+          value: https://dev.srrrg.link
         - name: SRRRG_TRUST_FORWARDED_HEADERS
           value: "true"
         - name: SRRRG_JWT_ACTIVE_KID
@@ -150,7 +148,7 @@ spec:
               - sleep 10
         readinessProbe:
           httpGet:
-            path: /srrrg-dev/actuator/health/readiness
+            path: /actuator/health/readiness
             port: app
           initialDelaySeconds: 20
           periodSeconds: 10
@@ -158,7 +156,7 @@ spec:
           failureThreshold: 6
         livenessProbe:
           httpGet:
-            path: /srrrg-dev/actuator/health/liveness
+            path: /actuator/health/liveness
             port: app
           initialDelaySeconds: 60
           periodSeconds: 20

@@ -50,6 +50,13 @@ spec:
           default: true
         exposedPort: 15432
         protocol: TCP
+
+    env:
+      - name: CF_DNS_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: traefik-cloudflare-dns
+            key: api-token
     
     additionalArguments:
       - "--entrypoints.argo.address=:8081"
@@ -63,6 +70,12 @@ spec:
 
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      - "--certificatesresolvers.cloudflare.acme.email=qkrwlgns0510@gmail.com"
+      - "--certificatesresolvers.cloudflare.acme.storage=/data/acme-cloudflare.json"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
     
     persistence:
       enabled: true

@@ -5,13 +5,14 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
 spec:
   ingressClassName: traefik
   tls:
     - hosts:
         - srrrg.link
         - www.srrrg.link
+        - "*.srrrg.link"
   rules:
     - host: srrrg.link
       http:
@@ -24,6 +25,16 @@ spec:
                 port:
                   number: 80
     - host: www.srrrg.link
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: srrrg-prod-app
+                port:
+                  number: 80
+    - host: "*.srrrg.link"
       http:
         paths:
           - path: /
