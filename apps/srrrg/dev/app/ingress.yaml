@@ -7,6 +7,8 @@ metadata:
     traefik.ingress.kubernetes.io/router.priority: "100"
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
+    traefik.ingress.kubernetes.io/router.tls.domains.0.main: dev.srrrg.link
+    traefik.ingress.kubernetes.io/router.tls.domains.0.sans: "*.dev.srrrg.link"
 spec:
   ingressClassName: traefik
   tls:

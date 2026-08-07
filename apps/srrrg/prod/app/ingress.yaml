@@ -6,6 +6,8 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
+    traefik.ingress.kubernetes.io/router.tls.domains.0.main: srrrg.link
+    traefik.ingress.kubernetes.io/router.tls.domains.0.sans: "*.srrrg.link"
 spec:
   ingressClassName: traefik
   tls:
