@@ -32,6 +32,8 @@ spec:
           value: dev
         - name: SRRRG_BASE_URL
           value: https://dev.srrrg.link
+        - name: SRRRG_JWT_ACCESS_LIFETIME
+          value: 5m
         - name: SRRRG_TRUST_FORWARDED_HEADERS
           value: "true"
         - name: SRRRG_JWT_ACTIVE_KID
