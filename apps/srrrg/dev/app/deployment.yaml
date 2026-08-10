@@ -139,6 +139,18 @@ spec:
             secretKeyRef:
               name: srrrg-google-safe-browsing
               key: GOOGLE_SAFE_BROWSING_API_KEY
+        - name: SPRING_DATA_REDIS_HOST
+          value: redis.redis.svc.cluster.local
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        - name: SPRING_DATA_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: redis-password
+              optional: true
+        - name: SRRRG_RATE_LIMIT_KEY_PREFIX
+          value: "srrrg:dev:"
         - name: JAVA_TOOL_OPTIONS
           value: -XX:MaxRAMPercentage=75
         lifecycle:
