@@ -7,4 +7,4 @@ resources:
   - servicemonitor.yaml
 images:
   - name: ghcr.io/mohyeonman/srrrg
-    newTag: sha-30f9161
+    newTag: sha-ee6bfe0
